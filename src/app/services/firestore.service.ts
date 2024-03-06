@@ -10,6 +10,7 @@ import {
   updateDoc,
   where,
 } from '@angular/fire/firestore';
+import { limit } from 'firebase/firestore';
 import {
   BehaviorSubject,
   Observable,
@@ -36,7 +37,7 @@ export class FirestoreService implements OnDestroy {
   readonly types = new Map<string, string>();
 
   private dataLoaded = new BehaviorSubject<boolean>(true);
-  public dataLoaded$: Observable<boolean> = this.dataLoaded.asObservable();
+  public dataLoaded$ = this.dataLoaded.asObservable();
   private subscriptions: Subscription[] = [];
 
   constructor() {
@@ -76,7 +77,7 @@ export class FirestoreService implements OnDestroy {
     const order = orderBy('name', 'asc');
     const condition = where('approved', '==', approved);
     const col = collection(this.firestore, this.organizations);
-    return collectionData(query(col, condition, order));
+    return collectionData(query(col, condition, order, limit(5)));
   }
 
   updateOrganization(id: string, partial: any): void {

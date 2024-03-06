@@ -1,14 +1,16 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import {
   Auth,
   GoogleAuthProvider,
+  Unsubscribe,
   getRedirectResult,
   onAuthStateChanged,
   signInWithRedirect,
-  user
+  user,
 } from '@angular/fire/auth';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
+import { Role } from 'src/app/models/user';
 import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
@@ -16,7 +18,7 @@ import { AuthService } from 'src/app/services/auth.service';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
 })
-export class LoginComponent {
+export class LoginComponent implements OnDestroy {
   private auth = inject(Auth);
   private router = inject(Router);
   private snackBar = inject(MatSnackBar);
@@ -26,17 +28,26 @@ export class LoginComponent {
   user$ = user(this.auth);
   isLoading = true;
 
+  private unsubscribe: Unsubscribe;
+
   constructor() {
-    onAuthStateChanged(this.auth, (_user) => {
+    this.unsubscribe = onAuthStateChanged(this.auth, async (_user) => {
       if (_user) {
         this.authService.updateLastAccess(_user.email);
         this.router.navigate(['dashboard']);
       }
       this.isLoading = false;
     });
+
+    // This will be called automatically by browser after user completed authentication
+    // Known issues: Isn't supported by Safari & Firefox browsers
     getRedirectResult(this.auth)
       .then((result) => this.authService.updateUser(result))
       .catch((error) => this.handleError(error));
+  }
+
+  ngOnDestroy(): void {
+    this.unsubscribe();
   }
 
   login() {

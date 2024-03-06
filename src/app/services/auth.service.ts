@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { Firestore, collection, collectionData, doc, query, updateDoc, where } from '@angular/fire/firestore';
 import { UserCredential } from 'firebase/auth';
-import { first } from 'rxjs';
+import { Subject, first } from 'rxjs';
+import { Role } from '../models/user';
 
 @Injectable({
   providedIn: 'root'
@@ -9,6 +10,13 @@ import { first } from 'rxjs';
 export class AuthService {
   private users = 'users';
   private firestore = inject(Firestore);
+
+  private role = new Subject<Role>();
+  role$ = this.role.asObservable();
+
+  setRole(role: Role) {
+    this.role.next(role);
+  }
 
   updateLastAccess(email: string | null) {
     if (!email) return;

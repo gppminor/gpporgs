@@ -1,4 +1,7 @@
 <div class="flex justify-content-between align-items-baseline">
     <h1 routerLink="/">GPP Organizations</h1>
-    <button mat-raised-button *ngIf="user$ | async" (click)="logout()">Logout</button>
+    <div>
+        <button mat-raised-button *ngIf="(role | async) == Role.ADMIN" (click)="adminView()">Admin</button>
+        <button class="ml-2" mat-raised-button *ngIf="user | async" (click)="logout()">Logout</button>
+    </div>
 </div>

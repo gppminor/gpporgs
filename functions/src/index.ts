@@ -1,46 +1,52 @@
-import { initializeApp } from "firebase-admin/app";
-import { getAuth } from "firebase-admin/auth";
-import { getFirestore } from "firebase-admin/firestore";
+import { initializeApp } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
+import { getFirestore } from 'firebase-admin/firestore';
 import {
   HttpsError,
   beforeUserCreated,
   beforeUserSignedIn,
-} from "firebase-functions/v2/identity";
+} from 'firebase-functions/v2/identity';
 
 const app = initializeApp();
-const allowedDomain = "@berkeley.edu";
+const allowedDomain = '@berkeley.edu';
 
 // Restrict domain, and check if user has access
 exports.onCreate = beforeUserCreated(async (event) => {
   const email = event.data.email;
   if (!email) {
-    throw new HttpsError("invalid-argument", "Invalid email argument");
+    throw new HttpsError('invalid-argument', 'Invalid email argument');
   }
   if (!email.includes(allowedDomain)) {
-    throw new HttpsError("permission-denied", "User your berkeley email");
+    throw new HttpsError('permission-denied', 'User your berkeley email');
   }
   if ((await getUserSnapshot(email)).size == 0) {
-    throw new HttpsError("not-found", "User has no access");
+    throw new HttpsError('not-found', 'User has no access');
   }
 });
 
-// Set role in custom claims
+// Set user custom claims from role
 exports.onSignIn = beforeUserSignedIn(async (event) => {
   const email = event.data.email;
   if (!email) {
-    throw new HttpsError("invalid-argument", "Invalid email");
+    throw new HttpsError('invalid-argument', 'Invalid email');
   }
   const snapshot = await getUserSnapshot(email);
   snapshot.forEach(async (_user) => {
     const data = _user.data();
-    const claims = { role: data.role };
+    let claims = {};
+    if (data.role == 'ADMIN') {
+      claims = { admin: true };
+    }
+    if (data.role == 'STUDENT') {
+      claims = { student: true };
+    }
     await getAuth().setCustomUserClaims(event.data?.uid, claims);
   });
 });
 
 const getUserSnapshot = async (email: string) => {
   const firestore = getFirestore(app);
-  const usersCol = firestore.collection("users");
-  const query = usersCol.where("email", "==", email);
+  const usersCol = firestore.collection('users');
+  const query = usersCol.where('email', '==', email);
   return await query.get();
 };
