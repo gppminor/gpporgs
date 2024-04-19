@@ -13,11 +13,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatSliderModule } from '@angular/material/slider';
 import {
   MAT_SNACK_BAR_DEFAULT_OPTIONS,
@@ -25,11 +27,14 @@ import {
 } from '@angular/material/snack-bar';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
+import { MatToolbarModule } from '@angular/material/toolbar';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { environment } from 'src/environments/environment';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { AdminOrganizationsComponent } from './components/admin/admin-organizations/admin-organizations.component';
+import { AdminUsersComponent } from './components/admin/admin-users/admin-users.component';
 import { AdminComponent } from './components/admin/admin.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { HeaderComponent } from './components/header/header.component';
@@ -37,6 +42,7 @@ import { LoginComponent } from './components/login/login.component';
 import { OrganizationComponent } from './components/organization/organization.component';
 import { ReviewComponent } from './components/reviews/review/review.component';
 import { ReviewsComponent } from './components/reviews/reviews.component';
+import { AdminHomeComponent } from './components/admin/admin-home/admin-home.component';
 
 @NgModule({
   declarations: [
@@ -48,9 +54,13 @@ import { ReviewsComponent } from './components/reviews/reviews.component';
     ReviewsComponent,
     DashboardComponent,
     OrganizationComponent,
+    AdminUsersComponent,
+    AdminOrganizationsComponent,
+    AdminHomeComponent,
   ],
   imports: [
     FormsModule,
+    MatListModule,
     MatMenuModule,
     MatSortModule,
     MatIconModule,
@@ -64,6 +74,8 @@ import { ReviewsComponent } from './components/reviews/reviews.component';
     MatSelectModule,
     MatDividerModule,
     AppRoutingModule,
+    MatToolbarModule,
+    MatSidenavModule,
     MatCheckboxModule,
     MatSnackBarModule,
     MatGridListModule,

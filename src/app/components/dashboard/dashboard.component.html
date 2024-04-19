@@ -1,6 +1,6 @@
-<div *ngIf="fireService.dataLoaded$ | async" class="flex justify-content-between align-items-center">
-  <mat-form-field appearance="fill" class="col-6 p-0">
-    <mat-icon matTextPrefix class="vertical-align-middle">search</mat-icon>
+<div *ngIf="fireService.dataLoaded$ | async" class="flex justify-between items-center mt-8">
+  <mat-form-field class="w-1/2">
+    <mat-icon matTextPrefix class="self-center">search</mat-icon>
     <input matInput [formControl]="nameControl" placeholder="Search organization" autocomplete="off">
     <button *ngIf="nameControl.value" matSuffix mat-icon-button (click)="nameControl.reset('')">
       <mat-icon>close</mat-icon>
@@ -68,4 +68,5 @@
   </div>
 </div>
 <mat-paginator class="shadow-2" [pageSizeOptions]="[10, 25, 50]" [pageSize]="25" [disabled]="isDataLoading"
-  showFirstLastButtons></mat-paginator>
+  showFirstLastButtons>
+</mat-paginator>

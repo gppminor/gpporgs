@@ -1,0 +1,10 @@
+<div class="flex flex-wrap items-center justify-center gap-10 h-[65vh] pt-8">
+    @for (stat of statistics; track stat) {
+    <div class="rounded-full border hover:cursor-pointer w-[200px]">
+        <div class="flex flex-col justify-center items-center text-center h-[200px]">
+            <span class="text-primary font-bold text-3xl">{{stat.observable | async}}</span>
+            {{stat.label}}
+        </div>
+    </div>
+    }
+</div>

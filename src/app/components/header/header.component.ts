@@ -1,55 +1,33 @@
-import { Component, OnDestroy, inject } from '@angular/core';
-import {
-  Auth,
-  Unsubscribe,
-  onAuthStateChanged,
-  signOut,
-} from '@angular/fire/auth';
+import { Component, inject } from '@angular/core';
+import { Auth, signOut } from '@angular/fire/auth';
 import { Router } from '@angular/router';
-import { Subject } from 'rxjs';
 import { Role } from 'src/app/models/user';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-header',
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
 })
-export class HeaderComponent implements OnDestroy {
+export class HeaderComponent {
   private auth = inject(Auth);
   private router = inject(Router);
+  authService = inject(AuthService);
 
   Role = Role;
-  user = new Subject<any>();
-  role = new Subject<Role>();
 
-  private unsubscribe: Unsubscribe;
-
-  constructor() {
-    this.unsubscribe = onAuthStateChanged(this.auth, (_user) => {
-      if (_user) {
-        this.user.next(_user);
-        _user.getIdTokenResult(true).then((token) => {
-          if (token.claims['admin']) {
-            this.role.next(Role.ADMIN);
-          }
-        });
-      } else {
-        this.user.next(null);
-        this.role.next(Role.NONE);
-      }
-    });
+  adminView(route: string) {
+    this.router.navigate([route]);
   }
 
-  ngOnDestroy(): void {
-    this.unsubscribe();
+  signIn() {
+    this.authService.signIn();
   }
 
-  adminView() {
-    this.router.navigate(['admin']);
-  }
-
-  async logout() {
+  async signOut() {
     await signOut(this.auth);
     this.router.navigate(['']);
   }
+
+  async deleteAccount() {}
 }

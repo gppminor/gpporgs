@@ -5,6 +5,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { Review } from 'src/app/models/review';
 import { FirestoreService } from 'src/app/services/firestore.service';
+import { formatTime } from 'src/app/utils'
 
 @Component({
   selector: 'app-reviews',
@@ -16,6 +17,8 @@ export class ReviewsComponent implements OnInit, OnDestroy {
   private location = inject(Location);
   private route = inject(ActivatedRoute);
   private fireService = inject(FirestoreService);
+
+  formatTime = formatTime;
 
   private organization: string | null;
   // formGroup = this.fb.group({});
@@ -58,22 +61,6 @@ export class ReviewsComponent implements OnInit, OnDestroy {
   }
 
   private fetchAddress(id: string) {}
-
-  getDate(time: number): string {
-    const date = new Date(time);
-    const padTo2Digits = (num: number) => {
-      return num.toString().padStart(2, '0');
-    };
-    return (
-      [
-        date.getFullYear(),
-        padTo2Digits(date.getMonth() + 1),
-        padTo2Digits(date.getDate()),
-      ].join('-') +
-      ' ' +
-      [padTo2Digits(date.getHours()), padTo2Digits(date.getMinutes())].join(':')
-    );
-  }
 
   goBack() {
     this.location.back();

@@ -5,7 +5,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import { Area } from 'src/app/models/enums';
 import { Filter } from 'src/app/models/filter';
 import { FirestoreService } from 'src/app/services/firestore.service';
@@ -35,20 +35,24 @@ export class DashboardComponent implements OnInit, OnDestroy {
   sectorControls: FormGroup;
   filterValues = new Filter();
 
-  private subscriptions: Subscription[] = [];
   isAllSectorsChecked = true;
   isDataLoading = false;
 
+  // For auto-unsubscribe
+  private destroy$ = new Subject<void>();
+
   ngOnInit(): void {
     this.initOrganizationsData();
-    const sub = this.fireService.dataLoaded$.subscribe(() => {
-      this.initFilterControls();
-    });
-    this.subscriptions.push(sub);
+    this.fireService.dataLoaded$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.initFilterControls();
+      });
   }
 
   ngOnDestroy(): void {
-    this.subscriptions.forEach((sub) => sub.unsubscribe());
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   initFilterControls() {
@@ -72,13 +76,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
   initOrganizationsData() {
     this.isDataLoading = true;
     this.dataSource.filterPredicate = this.applyFilter;
-    const sub = this.fireService.getOrganizations(true).subscribe((orgs) => {
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-      this.dataSource.data = orgs;
-      this.isDataLoading = false;
-    });
-    this.subscriptions.push(sub);
+    this.fireService
+      .getOrganizations(true)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((orgs) => {
+        this.dataSource.paginator = this.paginator;
+        this.dataSource.sort = this.sort;
+        this.dataSource.data = orgs;
+        this.isDataLoading = false;
+      });
   }
 
   updateAllSectorsChecked() {
@@ -109,33 +115,35 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   registerSubscriptions() {
-    let sub;
-    sub = this.nameControl.valueChanges.subscribe((name) => {
-      this.filterValues.name = name.trim().toLowerCase();
-      this.dataSource.filter = JSON.stringify(this.filterValues);
-    });
-    this.subscriptions.push(sub);
-
-    sub = this.areaControls.valueChanges.subscribe((event) => {
-      const _areas: string[] = [];
-      Object.keys(event).forEach((key) => {
-        if (event[key]) _areas.push(key);
+    this.nameControl.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((name) => {
+        this.filterValues.name = name.trim().toLowerCase();
+        this.dataSource.filter = JSON.stringify(this.filterValues);
       });
-      this.filterValues.areas = _areas;
-      this.dataSource.filter = JSON.stringify(this.filterValues);
-    });
-    this.subscriptions.push(sub);
 
-    sub = this.sectorControls.valueChanges.subscribe((event) => {
-      const _sectors: string[] = [];
-      Object.keys(event).forEach((key) => {
-        if (event[key]) _sectors.push(key);
+    this.areaControls.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((event) => {
+        const _areas: string[] = [];
+        Object.keys(event).forEach((key) => {
+          if (event[key]) _areas.push(key);
+        });
+        this.filterValues.areas = _areas;
+        this.dataSource.filter = JSON.stringify(this.filterValues);
       });
-      this.filterValues.sectors = _sectors;
-      this.dataSource.filter = JSON.stringify(this.filterValues);
-      this.updateAllSectorsChecked();
-    });
-    this.subscriptions.push(sub);
+
+    this.sectorControls.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((event) => {
+        const _sectors: string[] = [];
+        Object.keys(event).forEach((key) => {
+          if (event[key]) _sectors.push(key);
+        });
+        this.filterValues.sectors = _sectors;
+        this.dataSource.filter = JSON.stringify(this.filterValues);
+        this.updateAllSectorsChecked();
+      });
   }
 
   applyFilter(org: any, filter: string) {
@@ -159,11 +167,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   formatSectors(sectorIds: string[], other: string): string {
-    return sectorIds.map((id) => {
-      const value = this.fireService.sectors.get(id);
-      if (value?.toLowerCase().includes('other')) return other;
-      return value;
-    }).join('\n');
+    return sectorIds
+      .map((id) => {
+        const value = this.fireService.sectors.get(id);
+        if (value?.toLowerCase().includes('other')) return other;
+        return value;
+      })
+      .join('\n');
   }
 
   onClickOrganization(id: string) {
