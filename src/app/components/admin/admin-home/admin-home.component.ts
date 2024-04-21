@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { AdminService } from 'src/app/services/admin.service';
+import { Role } from 'src/app/types/user';
 
 @Component({
   selector: 'app-admin-home',
@@ -12,23 +13,23 @@ export class AdminHomeComponent {
   statistics = [
     {
       label: 'Approved Organizations',
-      observable: this.adminService.organizationsApproved$,
+      observable: this.adminService.countOrganizations(true),
     },
     {
       label: 'Pending Organizations',
-      observable: this.adminService.organizationsPending$,
+      observable: this.adminService.countOrganizations(false),
     },
     {
       label: 'Total Reviews',
-      observable: this.adminService.reviewsTotal$,
+      observable: this.adminService.countReviews(),
     },
     {
       label: 'Student Users',
-      observable: this.adminService.usersStudent$,
+      observable: this.adminService.countUsers(Role.STUDENT),
     },
     {
       label: 'Admin Users',
-      observable: this.adminService.usersAdmin$,
+      observable: this.adminService.countUsers(Role.ADMIN),
     },
   ];
 }

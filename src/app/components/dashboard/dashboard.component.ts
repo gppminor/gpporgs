@@ -6,9 +6,9 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { Area } from 'src/app/models/enums';
-import { Filter } from 'src/app/models/filter';
-import { FirestoreService } from 'src/app/services/firestore.service';
+import { FirestoreService } from 'src/app/services/user.service';
+import { Area } from 'src/app/types/enums';
+import { Filter } from 'src/app/types/filter';
 
 @Component({
   selector: 'app-dashboard',

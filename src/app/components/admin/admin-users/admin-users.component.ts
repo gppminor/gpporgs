@@ -1,12 +1,16 @@
 import { Component, ViewChild, inject } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSelectChange } from '@angular/material/select';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { Subject, takeUntil } from 'rxjs';
-import { Role } from 'src/app/models/user';
-import { FirestoreService } from 'src/app/services/firestore.service';
+import { AdminService } from 'src/app/services/admin.service';
+import { Action } from 'src/app/types/enums';
+import { Role, User } from 'src/app/types/user';
 import { formatTime } from 'src/app/utils';
+import { AdminActionComponent } from '../admin-action/admin-action.component';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-admin-users',
@@ -14,10 +18,20 @@ import { formatTime } from 'src/app/utils';
   styleUrl: './admin-users.component.scss',
 })
 export class AdminUsersComponent {
-  private fireService = inject(FirestoreService);
+  private dialog = inject(MatDialog);
+  private authService = inject(AuthService)
+  private adminService = inject(AdminService);
+
   Role = Role;
 
-  displayCols = ['name', 'email', 'lastAccessAt', 'loginCount', 'role'];
+  displayCols = [
+    'name',
+    'email',
+    'lastAccessAt',
+    'loginCount',
+    'role',
+    'actions',
+  ];
   dataSource = new MatTableDataSource<any>();
   dataLoading = false;
 
@@ -30,8 +44,7 @@ export class AdminUsersComponent {
 
   ngOnInit(): void {
     this.dataLoading = true;
-    this.fireService
-      .getUsers()
+    this.adminService.users$
       .pipe(takeUntil(this.destroy$))
       .subscribe((users) => {
         this.dataSource.paginator = this.paginator;
@@ -39,6 +52,7 @@ export class AdminUsersComponent {
         this.dataSource.data = users;
         this.dataLoading = false;
       });
+    this.adminService.getUsers();
   }
 
   ngOnDestroy(): void {
@@ -53,5 +67,26 @@ export class AdminUsersComponent {
 
   onClick(event: MatSelectChange, user: any) {
     console.log(user.role);
+  }
+
+  addUser(): void {
+    this.dialog.open(AdminActionComponent, {
+      disableClose: true,
+      data: { action: Action.ADD },
+    });
+  }
+
+  editUser(user: User): void {
+    this.dialog.open(AdminActionComponent, {
+      disableClose: true,
+      data: { action: Action.EDIT, user },
+    });
+  }
+
+  deleteUser(user: User): void {
+    this.dialog.open(AdminActionComponent, {
+      disableClose: true,
+      data: { action: Action.DELETE, user },
+    });
   }
 }

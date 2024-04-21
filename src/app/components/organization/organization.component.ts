@@ -4,8 +4,8 @@ import { FormBuilder } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, combineLatest, map, takeUntil } from 'rxjs';
-import { Organization } from 'src/app/models/organization';
-import { FirestoreService } from 'src/app/services/firestore.service';
+import { FirestoreService } from 'src/app/services/user.service';
+import { Organization } from 'src/app/types/organization';
 
 @Component({
   selector: 'app-details',

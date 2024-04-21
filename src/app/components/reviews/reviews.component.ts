@@ -3,9 +3,9 @@ import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { Review } from 'src/app/models/review';
-import { FirestoreService } from 'src/app/services/firestore.service';
-import { formatTime } from 'src/app/utils'
+import { FirestoreService } from 'src/app/services/user.service';
+import { Review } from 'src/app/types/review';
+import { formatTime } from 'src/app/utils';
 
 @Component({
   selector: 'app-reviews',

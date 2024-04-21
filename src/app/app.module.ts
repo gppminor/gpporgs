@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatDialogModule } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -33,6 +34,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { environment } from 'src/environments/environment';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { AdminActionComponent } from './components/admin/admin-action/admin-action.component';
+import { AdminHomeComponent } from './components/admin/admin-home/admin-home.component';
 import { AdminOrganizationsComponent } from './components/admin/admin-organizations/admin-organizations.component';
 import { AdminUsersComponent } from './components/admin/admin-users/admin-users.component';
 import { AdminComponent } from './components/admin/admin.component';
@@ -42,7 +45,6 @@ import { LoginComponent } from './components/login/login.component';
 import { OrganizationComponent } from './components/organization/organization.component';
 import { ReviewComponent } from './components/reviews/review/review.component';
 import { ReviewsComponent } from './components/reviews/reviews.component';
-import { AdminHomeComponent } from './components/admin/admin-home/admin-home.component';
 
 @NgModule({
   declarations: [
@@ -57,6 +59,7 @@ import { AdminHomeComponent } from './components/admin/admin-home/admin-home.com
     AdminUsersComponent,
     AdminOrganizationsComponent,
     AdminHomeComponent,
+    AdminActionComponent,
   ],
   imports: [
     FormsModule,
@@ -72,6 +75,7 @@ import { AdminHomeComponent } from './components/admin/admin-home/admin-home.com
     MatSliderModule,
     MatButtonModule,
     MatSelectModule,
+    MatDialogModule,
     MatDividerModule,
     AppRoutingModule,
     MatToolbarModule,

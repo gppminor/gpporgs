@@ -1,0 +1,41 @@
+<h1 mat-dialog-title>{{titles.get(action)}}</h1>
+<mat-dialog-content>
+    @if (action == Action.ADD || action == Action.EDIT) {
+    <form class="flex flex-col">
+        <mat-form-field>
+            <mat-label>Username</mat-label>
+            <input [formControl]="username" matInput placeholder="CalNet ID" required>
+            <span matTextSuffix>{{domain}}</span>
+        </mat-form-field>
+        <mat-form-field>
+            <mat-label>Role</mat-label>
+            <mat-select [formControl]="role">
+                @for (role of [Role.ADMIN, Role.STUDENT]; track role) {
+                <mat-option [value]="role">{{ role }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+    </form>
+    }
+    @if (action == Action.DELETE) {
+    <p>Are you sure you want to delete {{user?.email}}?</p>
+    }
+
+</mat-dialog-content>
+<mat-divider></mat-divider>
+<mat-dialog-actions align="center">
+    <button mat-flat-button mat-dialog-close color="warn">Close</button>
+    @switch (action) {
+    @case (Action.ADD) {
+    <button mat-flat-button color="primary" [disabled]="loading || !username.valid" (click)="addUser()">Add
+        User</button>
+    }
+    @case (Action.EDIT) {
+    <button mat-flat-button color="primary" [disabled]="loading || !(username.dirty || role.dirty)"
+        (click)="updateUser()">Update</button>
+    }
+    @case (Action.DELETE) {
+    <button mat-flat-button color="primary" [disabled]="loading" (click)="deleteUser()">Confirm</button>
+    }
+    }
+</mat-dialog-actions>

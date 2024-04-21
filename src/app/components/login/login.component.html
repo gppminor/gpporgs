@@ -2,9 +2,11 @@
     <h1 class="text-2xl">Hello!</h1>
     <p class="text-lg">Welcome to the new GPP Website! You need to be signed in to continue.</p>
     <div class="button-container">
-        <button mat-raised-button [disabled]="isLoading" (click)="login()" color="primary">Sign In</button>
-        <div class="spinner-container" *ngIf="isLoading">
+        <button mat-raised-button [disabled]="loading" (click)="login()" color="primary">Sign In</button>
+        @if (loading) {
+        <div class="spinner-container">
             <mat-spinner diameter="32"></mat-spinner>
         </div>
+        }
     </div>
 </div>

@@ -1,20 +1,34 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnDestroy, inject } from '@angular/core';
 import { Auth, signOut } from '@angular/fire/auth';
 import { Router } from '@angular/router';
-import { Role } from 'src/app/models/user';
+import { Subject, takeUntil } from 'rxjs';
 import { AuthService } from 'src/app/services/auth.service';
+import { Role } from 'src/app/types/user';
 
 @Component({
   selector: 'app-header',
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnDestroy {
   private auth = inject(Auth);
   private router = inject(Router);
   authService = inject(AuthService);
 
   Role = Role;
+  loading = true;
+  private destroy$ = new Subject<void>();
+
+  constructor() {
+    this.authService.loading$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((value) => (this.loading = value));
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   adminView(route: string) {
     this.router.navigate([route]);

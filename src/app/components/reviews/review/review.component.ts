@@ -3,9 +3,9 @@ import { Component, Input, OnInit, inject } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { MatChipInputEvent } from '@angular/material/chips';
 import { Subject, takeUntil } from 'rxjs';
-import { Address } from 'src/app/models/address';
-import { Review } from 'src/app/models/review';
-import { FirestoreService } from 'src/app/services/firestore.service';
+import { FirestoreService } from 'src/app/services/user.service';
+import { Address } from 'src/app/types/address';
+import { Review } from 'src/app/types/review';
 
 @Component({
   selector: 'app-review',

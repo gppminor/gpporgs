@@ -24,7 +24,6 @@ import {
 })
 export class FirestoreService implements OnDestroy {
   private firestore = inject(Firestore);
-  private readonly users = 'users';
   private readonly organizations = 'organizations';
   private readonly addresses = 'addresses';
   private readonly contacts = 'contacts';
@@ -68,12 +67,6 @@ export class FirestoreService implements OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((sub) => sub.unsubscribe());
-  }
-
-  getUsers(): Observable<any[]> {
-    const order = orderBy('name', 'asc');
-    const col = collection(this.firestore, this.users);
-    return collectionData(query(col, order, limit(5)));
   }
 
   getOrganization(id: string): Observable<any> {

@@ -1,3 +1,0 @@
-export enum Area {
-    DOMESTIC = 'DOMESTIC', INTERNATIONAL = 'INTERNATIONAL'
-}
