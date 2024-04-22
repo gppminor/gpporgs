@@ -50,32 +50,48 @@ export class AdminActionComponent {
 
   async addUser() {
     this.loading = true;
+    const role = this.role.value;
     const email = `${this.username.value}${this.domain}`;
-    const result = await this.adminService.addUser(email, this.role.value);
-    this.snackbar.open(result);
+    if (!role || !email) return;
+    const userInfo: User = {
+      email,
+      role,
+      createdAt: Date.now(),
+      lastAccessAt: 0,
+      loginCount: 0,
+      name: '',
+    };
+    const result = await this.adminService.addUser(userInfo);
+    if (result && result.id) {
+      this.snackbar.open('User successfully added');
+      userInfo.id = result.id;
+      this.dialogRef.close(userInfo);
+    } else {
+      this.snackbar.open('Error adding user');
+    }
     this.loading = false;
-    this.dialogRef.close();
   }
 
   async updateUser() {
     const id = this.user?.id;
-    const email = `${this.username.value}${this.domain}`
+    const email = `${this.username.value}${this.domain}`;
     const role = this.role.value;
     if (!id || !email || !role) return;
     this.loading = true;
-    const result = await this.adminService.updateUser(id, email, role);
-    this.snackbar.open(result);
+    const partial = { email, role };
+    await this.adminService.updateUser(id, partial);
+    this.snackbar.open('User successfully updated');
     this.loading = false;
-    this.dialogRef.close();
+    this.dialogRef.close({ id, ...partial });
   }
 
   async deleteUser() {
     const id = this.user?.id;
     if (!id) return;
     this.loading = true;
-    const result = await this.adminService.deleteUser(id);
-    this.snackbar.open(result);
+    await this.adminService.deleteUser(id);
+    this.snackbar.open('User deleted successfully');
     this.loading = false;
-    this.dialogRef.close();
+    this.dialogRef.close(id);
   }
 }

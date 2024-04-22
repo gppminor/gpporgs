@@ -4,7 +4,7 @@ import { FormBuilder } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, combineLatest, map, takeUntil } from 'rxjs';
-import { FirestoreService } from 'src/app/services/user.service';
+import { UserService } from 'src/app/services/user.service';
 import { Organization } from 'src/app/types/organization';
 
 @Component({
@@ -18,7 +18,7 @@ export class OrganizationComponent implements OnInit, OnDestroy {
   private location = inject(Location);
   private snackBar = inject(MatSnackBar);
   private route = inject(ActivatedRoute);
-  readonly fireService = inject(FirestoreService);
+  readonly fireService = inject(UserService);
 
   organization = new Organization();
   formGroup = this.fb.group({});

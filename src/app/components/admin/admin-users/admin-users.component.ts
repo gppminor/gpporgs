@@ -1,16 +1,15 @@
 import { Component, ViewChild, inject } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
-import { MatSelectChange } from '@angular/material/select';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
-import { Subject, takeUntil } from 'rxjs';
+import { take } from 'rxjs';
 import { AdminService } from 'src/app/services/admin.service';
+import { AuthService } from 'src/app/services/auth.service';
 import { Action } from 'src/app/types/enums';
 import { Role, User } from 'src/app/types/user';
 import { formatTime } from 'src/app/utils';
 import { AdminActionComponent } from '../admin-action/admin-action.component';
-import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-admin-users',
@@ -19,9 +18,10 @@ import { AuthService } from 'src/app/services/auth.service';
 })
 export class AdminUsersComponent {
   private dialog = inject(MatDialog);
-  private authService = inject(AuthService)
+  private authService = inject(AuthService);
   private adminService = inject(AdminService);
 
+  private email: string | null | undefined;
   Role = Role;
 
   displayCols = [
@@ -32,32 +32,35 @@ export class AdminUsersComponent {
     'role',
     'actions',
   ];
-  dataSource = new MatTableDataSource<any>();
-  dataLoading = false;
+
+  dataSource = new MatTableDataSource<User>();
+  loading = false;
 
   @ViewChild(MatSort) sort: MatSort;
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
   formatTime = formatTime;
 
-  private destroy$ = new Subject<void>();
-
   ngOnInit(): void {
-    this.dataLoading = true;
-    this.adminService.users$
-      .pipe(takeUntil(this.destroy$))
+    this.loading = true;
+
+    this.authService.user$
+      .pipe(take(1))
+      .subscribe((user) => (this.email = user?.email));
+
+    this.adminService
+      .getUsers()
+      .pipe(take(1))
       .subscribe((users) => {
         this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
         this.dataSource.data = users;
-        this.dataLoading = false;
+        this.loading = false;
       });
-    this.adminService.getUsers();
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+  isSelf(user: User): boolean {
+    return user.email === this.email;
   }
 
   applyFilter(event: Event) {
@@ -65,28 +68,58 @@ export class AdminUsersComponent {
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
-  onClick(event: MatSelectChange, user: any) {
-    console.log(user.role);
-  }
-
   addUser(): void {
-    this.dialog.open(AdminActionComponent, {
+    const dialogRef = this.dialog.open(AdminActionComponent, {
       disableClose: true,
       data: { action: Action.ADD },
     });
+
+    dialogRef
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((user) => {
+        if (user) {
+          const data = [...this.dataSource.data, user];
+          this.dataSource.data = data;
+        }
+      });
   }
 
   editUser(user: User): void {
-    this.dialog.open(AdminActionComponent, {
+    const dialogRef = this.dialog.open(AdminActionComponent, {
       disableClose: true,
       data: { action: Action.EDIT, user },
     });
+
+    dialogRef
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((partial) => {
+        if (partial) {
+          const data = this.dataSource.data.map((user) => {
+            if (user.id !== partial.id) return user;
+            return { ...user, ...partial };
+          });
+          this.dataSource.data = data;
+        }
+      });
   }
 
   deleteUser(user: User): void {
-    this.dialog.open(AdminActionComponent, {
+    const dialogRef = this.dialog.open(AdminActionComponent, {
       disableClose: true,
       data: { action: Action.DELETE, user },
     });
+
+    dialogRef
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((id) => {
+        if (id) {
+          this.dataSource.data = this.dataSource.data.filter(
+            (user) => user.id !== id
+          );
+        }
+      });
   }
 }

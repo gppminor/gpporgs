@@ -3,7 +3,7 @@ import { Component, Input, OnInit, inject } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { MatChipInputEvent } from '@angular/material/chips';
 import { Subject, takeUntil } from 'rxjs';
-import { FirestoreService } from 'src/app/services/user.service';
+import { UserService } from 'src/app/services/user.service';
 import { Address } from 'src/app/types/address';
 import { Review } from 'src/app/types/review';
 
@@ -14,7 +14,7 @@ import { Review } from 'src/app/types/review';
 })
 export class ReviewComponent implements OnInit {
   private fb = inject(FormBuilder);
-  fireService = inject(FirestoreService);
+  fireService = inject(UserService);
 
   @Input() data!: any;
 

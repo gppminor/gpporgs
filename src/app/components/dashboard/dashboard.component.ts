@@ -1,12 +1,12 @@
-import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { Component, OnDestroy, ViewChild, inject } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { FirestoreService } from 'src/app/services/user.service';
+import { UserService } from 'src/app/services/user.service';
 import { Area } from 'src/app/types/enums';
 import { Filter } from 'src/app/types/filter';
 
@@ -15,10 +15,10 @@ import { Filter } from 'src/app/types/filter';
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
-export class DashboardComponent implements OnInit, OnDestroy {
+export class DashboardComponent implements OnDestroy {
   private router = inject(Router);
   private fb = inject(FormBuilder);
-  readonly fireService = inject(FirestoreService);
+  readonly userService = inject(UserService);
 
   displayCols = ['name', 'type', 'country', 'sectors'];
   dataSource = new MatTableDataSource<any>();
@@ -30,23 +30,26 @@ export class DashboardComponent implements OnInit, OnDestroy {
   areas = [Area.DOMESTIC, Area.INTERNATIONAL];
   sectors = <any>[];
 
-  nameControl: FormControl;
+  nameControl = this.fb.control('');
   areaControls: FormGroup;
   sectorControls: FormGroup;
   filterValues = new Filter();
 
   isAllSectorsChecked = true;
-  isDataLoading = false;
+  loading = false;
 
   // For auto-unsubscribe
   private destroy$ = new Subject<void>();
 
-  ngOnInit(): void {
-    this.initOrganizationsData();
-    this.fireService.dataLoaded$
+  constructor() {
+    this.loading = true;
+    this.userService.ready$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.initFilterControls();
+      .subscribe((value) => {
+        if (value) {
+          this.initFilterControls();
+          this.initOrganizationsData();
+        }
       });
   }
 
@@ -56,7 +59,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   initFilterControls() {
-    this.nameControl = this.fb.control('');
     const _areaControls: any = {};
     for (const area of this.areas) {
       _areaControls[area] = true;
@@ -64,7 +66,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
     this.areaControls = this.fb.group(_areaControls);
     const _sectorControls: any = {};
-    for (const [key, value] of this.fireService.sectors.entries()) {
+    for (const [key, value] of this.userService.sectors.entries()) {
       _sectorControls[key] = true;
       this.sectors.push({ key, value });
       this.filterValues.sectors.push(key);
@@ -74,16 +76,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   initOrganizationsData() {
-    this.isDataLoading = true;
     this.dataSource.filterPredicate = this.applyFilter;
-    this.fireService
-      .getOrganizations(true)
+    this.userService
+      .getOrganizations()
       .pipe(takeUntil(this.destroy$))
       .subscribe((orgs) => {
         this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
         this.dataSource.data = orgs;
-        this.isDataLoading = false;
+        this.loading = false;
       });
   }
 
@@ -118,8 +119,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.nameControl.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe((name) => {
-        this.filterValues.name = name.trim().toLowerCase();
-        this.dataSource.filter = JSON.stringify(this.filterValues);
+        if (name) {
+          this.filterValues.name = name.trim().toLowerCase();
+          this.dataSource.filter = JSON.stringify(this.filterValues);
+        }
       });
 
     this.areaControls.valueChanges
@@ -169,7 +172,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   formatSectors(sectorIds: string[], other: string): string {
     return sectorIds
       .map((id) => {
-        const value = this.fireService.sectors.get(id);
+        const value = this.userService.sectors.get(id);
         if (value?.toLowerCase().includes('other')) return other;
         return value;
       })

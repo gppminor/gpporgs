@@ -1,4 +1,5 @@
 export const formatTime = (time: number) => {
+  if (time == 0) return '-';
   const date = new Date(time);
   const padTo2Digits = (num: number) => {
     return num.toString().padStart(2, '0');

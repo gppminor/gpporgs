@@ -1,3 +1,7 @@
+::ng-deep.mat-mdc-menu-panel {
+    max-width: none !important;
+}
+
 .table-container {
     height: calc(100vh - 270px);
 

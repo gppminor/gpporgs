@@ -3,7 +3,7 @@ import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { FirestoreService } from 'src/app/services/user.service';
+import { UserService } from 'src/app/services/user.service';
 import { Review } from 'src/app/types/review';
 import { formatTime } from 'src/app/utils';
 
@@ -16,11 +16,10 @@ export class ReviewsComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private location = inject(Location);
   private route = inject(ActivatedRoute);
-  private fireService = inject(FirestoreService);
+  private fireService = inject(UserService);
 
   formatTime = formatTime;
 
-  private organization: string | null;
   // formGroup = this.fb.group({});
   reviews: Review[];
   isLoading = false;
@@ -29,8 +28,8 @@ export class ReviewsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
-    this.organization = this.route.snapshot.paramMap.get('id');
-    this.fetchReview();
+    const organizationId = this.route.snapshot.paramMap.get('id');
+    if (organizationId) this.fetchReview(organizationId);
   }
 
   ngOnDestroy(): void {
@@ -38,11 +37,11 @@ export class ReviewsComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private fetchReview() {
+  private fetchReview(organizationId: string) {
     this.isLoading = true;
     this.reviews = [];
     this.fireService
-      .getReviews(this.organization)
+      .getReviews(organizationId)
       .pipe(takeUntil(this.destroy$))
       .subscribe((_reviews) => {
         // const reviewControls = [];

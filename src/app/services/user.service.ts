@@ -1,4 +1,4 @@
-import { Injectable, OnDestroy, inject } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {
   Firestore,
   collection,
@@ -10,24 +10,14 @@ import {
   updateDoc,
   where,
 } from '@angular/fire/firestore';
-import { limit } from 'firebase/firestore';
-import {
-  BehaviorSubject,
-  Observable,
-  Subscription,
-  combineLatest,
-  map,
-} from 'rxjs';
+import { BehaviorSubject, Observable, take } from 'rxjs';
+import { COLLECTIONS } from 'src/app/constants';
 
 @Injectable({
   providedIn: 'root',
 })
-export class FirestoreService implements OnDestroy {
-  private firestore = inject(Firestore);
-  private readonly organizations = 'organizations';
-  private readonly addresses = 'addresses';
-  private readonly contacts = 'contacts';
-  private readonly reviews = 'reviews';
+export class UserService {
+  private db = inject(Firestore);
 
   readonly affiliations = new Map<string, string>();
   readonly countries = new Map<string, string>();
@@ -36,69 +26,61 @@ export class FirestoreService implements OnDestroy {
   readonly sectors = new Map<string, string>();
   readonly types = new Map<string, string>();
 
-  private dataLoaded = new BehaviorSubject<boolean>(true);
-  public dataLoaded$ = this.dataLoaded.asObservable();
-  private subscriptions: Subscription[] = [];
+  private pendingLoad = 6;
+  private ready = new BehaviorSubject<boolean>(false);
+  ready$ = this.ready.asObservable();
 
   constructor() {
-    const id = { idField: 'id' };
-    const _collections = [
-      collectionData(collection(this.firestore, 'affiliations'), id),
-      collectionData(collection(this.firestore, 'countries')),
-      collectionData(collection(this.firestore, 'languages')),
-      collectionData(collection(this.firestore, 'regions'), id),
-      collectionData(collection(this.firestore, 'sectors'), id),
-      collectionData(collection(this.firestore, 'types'), id),
-    ];
-    const sub = combineLatest(_collections)
-      .pipe(
-        map(([_aff, _cou, _lan, _reg, _sec, _typ]) => {
-          _aff.forEach(({ id, name }) => this.affiliations.set(id, name));
-          _cou.forEach(({ code, name }) => this.countries.set(code, name));
-          _lan.forEach(({ code, name }) => this.languages.set(code, name));
-          _reg.forEach(({ id, name }) => this.regions.set(id, name));
-          _sec.forEach(({ id, name }) => this.sectors.set(id, name));
-          _typ.forEach(({ id, name }) => this.types.set(id, name));
-        })
-      )
-      .subscribe((_) => this.dataLoaded.next(true)); // notify on loading complete
-    this.subscriptions.push(sub);
+    this.fetchData(COLLECTIONS.AFFILIATIONS, this.affiliations);
+    this.fetchData(COLLECTIONS.COUNTRIES, this.countries);
+    this.fetchData(COLLECTIONS.LANGUAGES, this.languages);
+    this.fetchData(COLLECTIONS.REGIONS, this.regions);
+    this.fetchData(COLLECTIONS.SECTORS, this.sectors);
+    this.fetchData(COLLECTIONS.TYPES, this.types);
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach((sub) => sub.unsubscribe());
+  private fetchData(col: string, store: Map<any, any>) {
+    const id = { idField: 'id' };
+    collectionData(collection(this.db, col), id)
+      .pipe(take(1))
+      .subscribe((_data) => {
+        _data.forEach(({ id, code, name }) => store.set(id || code, name));
+        this.pendingLoad--;
+        if (this.pendingLoad == 0) {
+          this.ready.next(true);
+        }
+      });
   }
 
   getOrganization(id: string): Observable<any> {
-    return docData(doc(this.firestore, this.organizations, id));
+    return docData(doc(this.db, COLLECTIONS.ORGANIZATIONS, id));
   }
 
-  getOrganizations(approved: boolean): Observable<any[]> {
-    const order = orderBy('name', 'asc');
-    const condition = where('approved', '==', approved);
-    const col = collection(this.firestore, this.organizations);
-    return collectionData(query(col, condition, order, limit(5)));
+  getOrganizations(): Observable<any[]> {
+    const col = collection(this.db, COLLECTIONS.ORGANIZATIONS);
+    const condition = where('approved', '==', true);
+    return collectionData(query(col, condition, orderBy('name', 'asc')));
   }
 
-  updateOrganization(id: string, partial: any): void {
-    const docRef = doc(this.firestore, this.organizations, id);
-    updateDoc(docRef, partial);
+  async updateOrganization(id: string, partial: any): Promise<void> {
+    const docRef = doc(this.db, COLLECTIONS.ORGANIZATIONS, id);
+    await updateDoc(docRef, partial);
   }
 
   getAddress(id: string): Observable<any> {
-    const docRef = doc(this.firestore, this.addresses, id);
+    const docRef = doc(this.db, COLLECTIONS.ADDRESSES, id);
     return docData(docRef);
   }
 
   getContact(id: string): Observable<any> {
-    const docRef = doc(this.firestore, this.contacts, id);
+    const docRef = doc(this.db, COLLECTIONS.CONTACTS, id);
     return docData(docRef, { idField: 'id' });
   }
 
-  getReviews(organization: string | null): Observable<any[]> {
+  getReviews(organizationId: string): Observable<any[]> {
     const order = orderBy('createdAt', 'desc');
-    const condition = where('organization', '==', organization);
-    const col = collection(this.firestore, this.reviews);
+    const condition = where('organization', '==', organizationId);
+    const col = collection(this.db, COLLECTIONS.REVIEWS);
     return collectionData(query(col, condition, order));
   }
 }
