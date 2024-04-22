@@ -7,15 +7,15 @@ import { Action } from 'src/app/types/enums';
 import { Role, User } from 'src/app/types/user';
 
 @Component({
-  selector: 'app-admin-action',
-  templateUrl: './admin-action.component.html',
-  styleUrl: './admin-action.component.scss',
+  selector: 'app-action-user',
+  templateUrl: './action-user.component.html',
+  styleUrl: './action-user.component.scss',
 })
-export class AdminActionComponent {
+export class ActionUserComponent {
   private fb = inject(FormBuilder);
   private snackbar = inject(MatSnackBar);
   private adminService = inject(AdminService);
-  private dialogRef = inject(MatDialogRef<AdminActionComponent>);
+  private dialogRef = inject(MatDialogRef<ActionUserComponent>);
   private data: any = inject(MAT_DIALOG_DATA);
 
   Role = Role;

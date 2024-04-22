@@ -16,7 +16,7 @@ import { AuthService } from 'src/app/services/auth.service';
 import { Action } from 'src/app/types/enums';
 import { Role, User } from 'src/app/types/user';
 import { formatTime } from 'src/app/utils';
-import { AdminActionComponent } from '../admin-action/admin-action.component';
+import { ActionUserComponent } from '../action-user/action-user.component';
 
 @Component({
   selector: 'app-admin-users',
@@ -47,6 +47,7 @@ export class AdminUsersComponent implements AfterViewInit, OnInit, OnDestroy {
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
   formatTime = formatTime;
+  isSelf = this.authService.isSelf
 
   private destroy$ = new Subject<void>();
 
@@ -75,17 +76,13 @@ export class AdminUsersComponent implements AfterViewInit, OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  isSelf(user: User): boolean {
-    return user.email === this.email;
-  }
-
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
   addUser(): void {
-    const dialogRef = this.dialog.open(AdminActionComponent, {
+    const dialogRef = this.dialog.open(ActionUserComponent, {
       disableClose: true,
       data: { action: Action.ADD },
     });
@@ -102,7 +99,7 @@ export class AdminUsersComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   editUser(user: User): void {
-    const dialogRef = this.dialog.open(AdminActionComponent, {
+    const dialogRef = this.dialog.open(ActionUserComponent, {
       disableClose: true,
       data: { action: Action.EDIT, user },
     });
@@ -122,7 +119,7 @@ export class AdminUsersComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   deleteUser(user: User): void {
-    const dialogRef = this.dialog.open(AdminActionComponent, {
+    const dialogRef = this.dialog.open(ActionUserComponent, {
       disableClose: true,
       data: { action: Action.DELETE, user },
     });

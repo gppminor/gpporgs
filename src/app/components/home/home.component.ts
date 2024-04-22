@@ -19,11 +19,11 @@ import { Filter } from 'src/app/types/filter';
 import { Organization } from 'src/app/types/organization';
 
 @Component({
-  selector: 'app-dashboard',
-  templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.scss'],
+  selector: 'app-home',
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.scss'],
 })
-export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
+export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private router = inject(Router);
   private fb = inject(FormBuilder);
   readonly userService = inject(UserService);
@@ -45,11 +45,13 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   isAllSectorsChecked = true;
   loading = false;
+  ready = true;
 
   // For auto-unsubscribe
   private destroy$ = new Subject<void>();
 
   constructor() {
+    this.ready = false;
     this.userService.ready$
       .pipe(takeUntil(this.destroy$))
       .subscribe((value) => {
@@ -94,6 +96,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       this.filterValues.sectors.push(key);
     }
     this.sectorControls = this.fb.group(_sectorControls);
+    this.ready = true;
     this.registerSubscriptions();
   }
 

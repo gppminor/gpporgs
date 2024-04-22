@@ -34,32 +34,32 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { environment } from 'src/environments/environment';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { AdminActionComponent } from './components/admin/admin-action/admin-action.component';
-import { AdminHomeComponent } from './components/admin/admin-home/admin-home.component';
+import { ActionUserComponent } from './components/admin/action-user/action-user.component';
 import { AdminOrganizationsComponent } from './components/admin/admin-organizations/admin-organizations.component';
 import { AdminUsersComponent } from './components/admin/admin-users/admin-users.component';
 import { AdminComponent } from './components/admin/admin.component';
-import { DashboardComponent } from './components/dashboard/dashboard.component';
-import { HeaderComponent } from './components/header/header.component';
+import { DashboardComponent } from './components/admin/dashboard/dashboard.component';
+import { HomeComponent } from './components/home/home.component';
 import { LoginComponent } from './components/login/login.component';
 import { OrganizationComponent } from './components/organization/organization.component';
 import { ReviewComponent } from './components/reviews/review/review.component';
 import { ReviewsComponent } from './components/reviews/reviews.component';
+import { ToolbarComponent } from './components/toolbar/toolbar.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     LoginComponent,
     AdminComponent,
-    HeaderComponent,
+    ToolbarComponent,
     ReviewComponent,
     ReviewsComponent,
-    DashboardComponent,
+    HomeComponent,
     OrganizationComponent,
     AdminUsersComponent,
     AdminOrganizationsComponent,
-    AdminHomeComponent,
-    AdminActionComponent,
+    DashboardComponent,
+    ActionUserComponent,
   ],
   imports: [
     FormsModule,

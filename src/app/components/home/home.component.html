@@ -15,22 +15,22 @@
       <mat-icon class="vertical-align-middle">filter_list</mat-icon>
     </button>
     <mat-menu #filters="matMenu" xPosition="before" class="w-[600px] px-4">
-      @if (!loading) {
+      @if (ready) {
       <div (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
         <strong class="p-2"><mat-label>Area</mat-label></strong>
         <section [formGroup]="areaControls">
           <ng-container *ngFor="let area of areas">
-            <mat-checkbox formControlName="{{area}}" class="mr-4">{{area.toLowerCase()}}</mat-checkbox>
+            <mat-checkbox formControlName="{{area}}" color="primary" class="mr-4">{{area.toLowerCase()}}</mat-checkbox>
           </ng-container>
         </section>
         <br />
         <strong class="p-2"><mat-label>Sectors</mat-label></strong>
         <br />
         <mat-checkbox [checked]="isAllSectorsChecked" [indeterminate]="someSectorsChecked()"
-          (change)="setAllSectors($event.checked)">All</mat-checkbox>
-        <section [formGroup]="sectorControls" class="flex flex-wrap overflow-y-auto">
+          (change)="setAllSectors($event.checked)" color="primary">All</mat-checkbox>
+        <section [formGroup]="sectorControls" class="flex flex-wrap">
           @for (sector of sectors; track sector) {
-          <mat-checkbox formControlName="{{sector.key}}" class="w-1/2">{{sector.value}}</mat-checkbox>
+          <mat-checkbox formControlName="{{sector.key}}" color="primary" class="w-1/2">{{sector.value}}</mat-checkbox>
           <br />
           } @empty {
           <p>no records.</p>

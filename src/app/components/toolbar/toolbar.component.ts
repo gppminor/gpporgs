@@ -6,11 +6,11 @@ import { AuthService } from 'src/app/services/auth.service';
 import { Role } from 'src/app/types/user';
 
 @Component({
-  selector: 'app-header',
-  templateUrl: './header.component.html',
-  styleUrls: ['./header.component.scss'],
+  selector: 'app-toolbar',
+  templateUrl: './toolbar.component.html',
+  styleUrls: ['./toolbar.component.scss'],
 })
-export class HeaderComponent implements OnDestroy {
+export class ToolbarComponent implements OnDestroy {
   private auth = inject(Auth);
   private router = inject(Router);
   authService = inject(AuthService);
@@ -40,7 +40,7 @@ export class HeaderComponent implements OnDestroy {
 
   async signOut() {
     await signOut(this.auth);
-    this.router.navigate(['']);
+    this.router.navigateByUrl('/login');
   }
 
   async deleteAccount() {}

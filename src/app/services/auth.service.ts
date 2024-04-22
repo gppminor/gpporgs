@@ -18,7 +18,7 @@ import {
 } from '@angular/fire/firestore';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { GoogleAuthProvider, UserCredential } from 'firebase/auth';
-import { BehaviorSubject, Subject, first } from 'rxjs';
+import { Subject, first } from 'rxjs';
 import { Role } from '../types/user';
 
 @Injectable({
@@ -32,7 +32,7 @@ export class AuthService implements OnInit, OnDestroy {
   private provider = new GoogleAuthProvider();
 
   user$ = user(this.auth);
-
+  private email: string | null = null;
   private role = new Subject<Role>();
   role$ = this.role.asObservable();
 
@@ -51,9 +51,11 @@ export class AuthService implements OnInit, OnDestroy {
           this.loading.next(false);
         });
         this.updateLastAccess(_user.email);
+        this.email = _user.email;
       } else {
         this.role.next(Role.NONE);
         this.loading.next(false);
+        this.email = null;
       }
     });
   }
@@ -68,6 +70,10 @@ export class AuthService implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.unsubscribe();
+  }
+
+  isSelf(email: string): boolean {
+    return this.email === email;
   }
 
   async signIn() {

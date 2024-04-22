@@ -18,7 +18,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.authService.user$.pipe(takeUntil(this.destroy$)).subscribe((user) => {
       if (user) {
-        this.router.navigate(['dashboard']);
+        this.router.navigate(['']);
       }
     });
     this.authService.loading$

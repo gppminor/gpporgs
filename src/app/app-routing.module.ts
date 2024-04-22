@@ -5,26 +5,26 @@ import {
   redirectUnauthorizedTo,
 } from '@angular/fire/auth-guard';
 import { RouterModule, Routes } from '@angular/router';
-import { AdminHomeComponent } from './components/admin/admin-home/admin-home.component';
 import { AdminOrganizationsComponent } from './components/admin/admin-organizations/admin-organizations.component';
 import { AdminUsersComponent } from './components/admin/admin-users/admin-users.component';
 import { AdminComponent } from './components/admin/admin.component';
-import { DashboardComponent } from './components/dashboard/dashboard.component';
+import { DashboardComponent } from './components/admin/dashboard/dashboard.component';
+import { HomeComponent } from './components/home/home.component';
 import { LoginComponent } from './components/login/login.component';
 import { OrganizationComponent } from './components/organization/organization.component';
 import { ReviewsComponent } from './components/reviews/reviews.component';
 
-const redirectUnauthorizedToLogin = () => redirectUnauthorizedTo(['/']);
+const redirectUnauthorizedToLogin = () => redirectUnauthorizedTo(['/login']);
 const adminOnly = () => hasCustomClaim('admin'); // set in cloud function
 
 const routes: Routes = [
   {
-    path: '',
+    path: 'login',
     component: LoginComponent,
   },
   {
-    path: 'dashboard',
-    component: DashboardComponent,
+    path: '',
+    component: HomeComponent,
     ...canActivate(redirectUnauthorizedToLogin),
   },
   {
@@ -42,7 +42,7 @@ const routes: Routes = [
     component: AdminComponent,
     ...canActivate(adminOnly),
     children: [
-      { path: '', component: AdminHomeComponent },
+      { path: '', component: DashboardComponent },
       { path: 'users', component: AdminUsersComponent },
       { path: 'organizations', component: AdminOrganizationsComponent },
     ],
