@@ -11,3 +11,11 @@ export const COLLECTIONS = {
   SECTORS: 'sectors',
   TYPES: 'types',
 };
+
+export const ADMIN_STATS = {
+  KEY_APPROVED: 'approved',
+  KEY_PENDING: 'pending',
+  KEY_REVIEWS: 'reviews',
+  KEY_STUDENTS: 'students',
+  KEY_ADMINS: 'admins',
+};

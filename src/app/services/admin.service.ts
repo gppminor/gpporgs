@@ -15,14 +15,8 @@ import {
   where,
 } from '@angular/fire/firestore';
 import { BehaviorSubject, take } from 'rxjs';
-import { COLLECTIONS } from '../constants';
-import { Role, User } from '../types/user';
-
-export const KEY_APPROVED = 'approved';
-export const KEY_PENDING = 'pending';
-export const KEY_REVIEWS = 'reviews';
-export const KEY_STUDENTS = 'students';
-export const KEY_ADMINS = 'admins';
+import { ADMIN_STATS, COLLECTIONS } from 'src/app/constants';
+import { Role, User } from 'src/app/types/user';
 
 @Injectable({
   providedIn: 'root',
@@ -38,25 +32,37 @@ export class AdminService {
 
   // stats
   private values = new Map<string, number>([
-    [KEY_APPROVED, 0],
-    [KEY_PENDING, 0],
-    [KEY_REVIEWS, 0],
-    [KEY_STUDENTS, 0],
-    [KEY_ADMINS, 0],
+    [ADMIN_STATS.KEY_APPROVED, 0],
+    [ADMIN_STATS.KEY_PENDING, 0],
+    [ADMIN_STATS.KEY_REVIEWS, 0],
+    [ADMIN_STATS.KEY_STUDENTS, 0],
+    [ADMIN_STATS.KEY_ADMINS, 0],
   ]);
   private stats = new BehaviorSubject<Map<string, number>>(this.values);
   stats$ = this.stats.asObservable();
 
   constructor() {
-    let condition = where('approved', '==', true);
-    this.fetchStat(COLLECTIONS.ORGANIZATIONS, KEY_APPROVED, condition);
-    condition = where('approved', '==', false);
-    this.fetchStat(COLLECTIONS.ORGANIZATIONS, KEY_PENDING, condition);
-    this.fetchStat(COLLECTIONS.REVIEWS, KEY_REVIEWS);
-    condition = where('role', '==', Role.ADMIN);
-    this.fetchStat(COLLECTIONS.USERS, KEY_ADMINS, condition);
-    condition = where('role', '==', Role.STUDENT);
-    this.fetchStat(COLLECTIONS.USERS, KEY_STUDENTS, condition);
+    this.fetchStat(
+      COLLECTIONS.ORGANIZATIONS,
+      ADMIN_STATS.KEY_APPROVED,
+      where('approved', '==', true)
+    );
+    this.fetchStat(
+      COLLECTIONS.ORGANIZATIONS,
+      ADMIN_STATS.KEY_PENDING,
+      where('approved', '==', false)
+    );
+    this.fetchStat(COLLECTIONS.REVIEWS, ADMIN_STATS.KEY_REVIEWS);
+    this.fetchStat(
+      COLLECTIONS.USERS,
+      ADMIN_STATS.KEY_ADMINS,
+      where('role', '==', Role.ADMIN)
+    );
+    this.fetchStat(
+      COLLECTIONS.USERS,
+      ADMIN_STATS.KEY_STUDENTS,
+      where('role', '==', Role.STUDENT)
+    );
     this.fetchUsers();
     this.fetchOrganizations();
   }

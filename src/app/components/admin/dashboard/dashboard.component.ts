@@ -1,12 +1,6 @@
 import { Component, inject } from '@angular/core';
-import {
-  AdminService,
-  KEY_ADMINS,
-  KEY_APPROVED,
-  KEY_PENDING,
-  KEY_REVIEWS,
-  KEY_STUDENTS,
-} from 'src/app/services/admin.service';
+import { ADMIN_STATS } from 'src/app/constants';
+import { AdminService } from 'src/app/services/admin.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -19,23 +13,23 @@ export class DashboardComponent {
   statistics = [
     {
       label: 'Approved Organizations',
-      key: KEY_APPROVED,
+      key: ADMIN_STATS.KEY_APPROVED,
     },
     {
       label: 'Pending Organizations',
-      key: KEY_PENDING,
+      key: ADMIN_STATS.KEY_PENDING,
     },
     {
       label: 'Total Reviews',
-      key: KEY_REVIEWS,
+      key: ADMIN_STATS.KEY_REVIEWS,
     },
     {
       label: 'Student Users',
-      key: KEY_STUDENTS,
+      key: ADMIN_STATS.KEY_STUDENTS,
     },
     {
       label: 'Admin Users',
-      key: KEY_ADMINS,
+      key: ADMIN_STATS.KEY_ADMINS,
     },
   ];
 }
