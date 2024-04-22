@@ -1,9 +1,16 @@
-import { Component, ViewChild, inject } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  inject,
+} from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
-import { take } from 'rxjs';
+import { Subject, take, takeUntil } from 'rxjs';
 import { AdminService } from 'src/app/services/admin.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { Action } from 'src/app/types/enums';
@@ -16,7 +23,7 @@ import { AdminActionComponent } from '../admin-action/admin-action.component';
   templateUrl: './admin-users.component.html',
   styleUrl: './admin-users.component.scss',
 })
-export class AdminUsersComponent {
+export class AdminUsersComponent implements AfterViewInit, OnInit, OnDestroy {
   private dialog = inject(MatDialog);
   private authService = inject(AuthService);
   private adminService = inject(AdminService);
@@ -41,22 +48,31 @@ export class AdminUsersComponent {
 
   formatTime = formatTime;
 
+  private destroy$ = new Subject<void>();
+
   ngOnInit(): void {
     this.loading = true;
 
     this.authService.user$
-      .pipe(take(1))
+      .pipe(takeUntil(this.destroy$))
       .subscribe((user) => (this.email = user?.email));
 
-    this.adminService
-      .getUsers()
-      .pipe(take(1))
+    this.adminService.users$
+      .pipe(takeUntil(this.destroy$))
       .subscribe((users) => {
-        this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
         this.dataSource.data = users;
         this.loading = false;
       });
+  }
+
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   isSelf(user: User): boolean {

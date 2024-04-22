@@ -1,4 +1,11 @@
-import { Component, OnDestroy, ViewChild, inject } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  inject,
+} from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { MatPaginator } from '@angular/material/paginator';
@@ -9,19 +16,20 @@ import { Subject, takeUntil } from 'rxjs';
 import { UserService } from 'src/app/services/user.service';
 import { Area } from 'src/app/types/enums';
 import { Filter } from 'src/app/types/filter';
+import { Organization } from 'src/app/types/organization';
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
-export class DashboardComponent implements OnDestroy {
+export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   private router = inject(Router);
   private fb = inject(FormBuilder);
   readonly userService = inject(UserService);
 
   displayCols = ['name', 'type', 'country', 'sectors'];
-  dataSource = new MatTableDataSource<any>();
+  dataSource = new MatTableDataSource<Organization>();
 
   @ViewChild(MatSort) sort: MatSort;
   @ViewChild(MatPaginator) paginator: MatPaginator;
@@ -42,15 +50,29 @@ export class DashboardComponent implements OnDestroy {
   private destroy$ = new Subject<void>();
 
   constructor() {
-    this.loading = true;
     this.userService.ready$
       .pipe(takeUntil(this.destroy$))
       .subscribe((value) => {
         if (value) {
           this.initFilterControls();
-          this.initOrganizationsData();
         }
       });
+  }
+
+  ngOnInit(): void {
+    this.loading = true;
+    this.userService.organizations$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((orgs) => {
+        this.dataSource.data = orgs;
+        this.loading = false;
+      });
+  }
+
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
+    this.dataSource.filterPredicate = this.applyFilter;
   }
 
   ngOnDestroy(): void {
@@ -73,19 +95,6 @@ export class DashboardComponent implements OnDestroy {
     }
     this.sectorControls = this.fb.group(_sectorControls);
     this.registerSubscriptions();
-  }
-
-  initOrganizationsData() {
-    this.dataSource.filterPredicate = this.applyFilter;
-    this.userService
-      .getOrganizations()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((orgs) => {
-        this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
-        this.dataSource.data = orgs;
-        this.loading = false;
-      });
   }
 
   updateAllSectorsChecked() {

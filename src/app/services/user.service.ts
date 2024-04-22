@@ -30,6 +30,9 @@ export class UserService {
   private ready = new BehaviorSubject<boolean>(false);
   ready$ = this.ready.asObservable();
 
+  private organizations = new BehaviorSubject<any[]>([]);
+  organizations$ = this.organizations.asObservable();
+
   constructor() {
     this.fetchData(COLLECTIONS.AFFILIATIONS, this.affiliations);
     this.fetchData(COLLECTIONS.COUNTRIES, this.countries);
@@ -37,6 +40,7 @@ export class UserService {
     this.fetchData(COLLECTIONS.REGIONS, this.regions);
     this.fetchData(COLLECTIONS.SECTORS, this.sectors);
     this.fetchData(COLLECTIONS.TYPES, this.types);
+    this.fetchOrganizations();
   }
 
   private fetchData(col: string, store: Map<any, any>) {
@@ -52,14 +56,17 @@ export class UserService {
       });
   }
 
-  getOrganization(id: string): Observable<any> {
-    return docData(doc(this.db, COLLECTIONS.ORGANIZATIONS, id));
-  }
-
-  getOrganizations(): Observable<any[]> {
+  private fetchOrganizations() {
+    const id = { idField: 'id' };
     const col = collection(this.db, COLLECTIONS.ORGANIZATIONS);
     const condition = where('approved', '==', true);
-    return collectionData(query(col, condition, orderBy('name', 'asc')));
+    collectionData(query(col, condition, orderBy('name', 'asc')), id)
+      .pipe(take(1))
+      .subscribe((data) => this.organizations.next(data));
+  }
+
+  getOrganization(id: string): Observable<any> {
+    return docData(doc(this.db, COLLECTIONS.ORGANIZATIONS, id));
   }
 
   async updateOrganization(id: string, partial: any): Promise<void> {

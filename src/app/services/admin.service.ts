@@ -13,7 +13,7 @@ import {
   updateDoc,
   where,
 } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable, take } from 'rxjs';
 import { COLLECTIONS } from '../constants';
 import { Role, User } from '../types/user';
 
@@ -22,6 +22,21 @@ import { Role, User } from '../types/user';
 })
 export class AdminService {
   private db = inject(Firestore);
+
+  private users = new BehaviorSubject<any[]>([]);
+  users$ = this.users.asObservable();
+
+  constructor() {
+    this.fetchUsers();
+  }
+
+  private fetchUsers() {
+    const id = { idField: 'id' };
+    const col = collection(this.db, COLLECTIONS.USERS);
+    collectionData(query(col, orderBy('name', 'asc')), id)
+      .pipe(take(1))
+      .subscribe((data) => this.users.next(data));
+  }
 
   countOrganizations(approved: boolean): Observable<number> {
     const col = collection(this.db, COLLECTIONS.ORGANIZATIONS);
@@ -46,12 +61,6 @@ export class AdminService {
   updateUser(id: string, partial: any): Promise<void> {
     const user = doc(this.db, COLLECTIONS.USERS, id);
     return updateDoc(user, partial);
-  }
-
-  getUsers(): Observable<any[]> {
-    const id = { idField: 'id' };
-    const col = collection(this.db, COLLECTIONS.USERS);
-    return collectionData(query(col, orderBy('name', 'asc')), id);
   }
 
   deleteUser(id: string): Promise<void> {
