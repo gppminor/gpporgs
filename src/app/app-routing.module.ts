@@ -14,8 +14,9 @@ import { LoginComponent } from './components/login/login.component';
 import { OrganizationComponent } from './components/organization/organization.component';
 import { ReviewsComponent } from './components/reviews/reviews.component';
 
+// custom claims are set in cloud function:setClaims
+const adminOnly = () => hasCustomClaim('admin');
 const redirectUnauthorizedToLogin = () => redirectUnauthorizedTo(['/login']);
-const adminOnly = () => hasCustomClaim('admin'); // set in cloud function
 
 const routes: Routes = [
   {
@@ -47,7 +48,7 @@ const routes: Routes = [
       { path: 'organizations', component: AdminOrganizationsComponent },
     ],
   },
-  { path: '**', redirectTo: '' },
+  { path: '**', redirectTo: '/login' },
 ];
 
 @NgModule({

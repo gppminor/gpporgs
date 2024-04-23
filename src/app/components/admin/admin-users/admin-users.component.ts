@@ -35,7 +35,7 @@ export class AdminUsersComponent implements AfterViewInit, OnInit, OnDestroy {
     'name',
     'email',
     'lastAccessAt',
-    'loginCount',
+    'accessCount',
     'role',
     'actions',
   ];
@@ -82,57 +82,23 @@ export class AdminUsersComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   addUser(): void {
-    const dialogRef = this.dialog.open(ActionUserComponent, {
+    this.dialog.open(ActionUserComponent, {
       disableClose: true,
       data: { action: Action.ADD },
     });
-
-    dialogRef
-      .afterClosed()
-      .pipe(take(1))
-      .subscribe((user) => {
-        if (user) {
-          const data = [...this.dataSource.data, user];
-          this.dataSource.data = data;
-        }
-      });
   }
 
   editUser(user: User): void {
-    const dialogRef = this.dialog.open(ActionUserComponent, {
+    this.dialog.open(ActionUserComponent, {
       disableClose: true,
       data: { action: Action.EDIT, user },
     });
-
-    dialogRef
-      .afterClosed()
-      .pipe(take(1))
-      .subscribe((partial) => {
-        if (partial) {
-          const data = this.dataSource.data.map((user) => {
-            if (user.id !== partial.id) return user;
-            return { ...user, ...partial };
-          });
-          this.dataSource.data = data;
-        }
-      });
   }
 
   deleteUser(user: User): void {
-    const dialogRef = this.dialog.open(ActionUserComponent, {
+    this.dialog.open(ActionUserComponent, {
       disableClose: true,
       data: { action: Action.DELETE, user },
     });
-
-    dialogRef
-      .afterClosed()
-      .pipe(take(1))
-      .subscribe((id) => {
-        if (id) {
-          this.dataSource.data = this.dataSource.data.filter(
-            (user) => user.id !== id
-          );
-        }
-      });
   }
 }

@@ -13,7 +13,7 @@
     @if (loading){
     <mat-progress-bar mode="indeterminate" />
     }
-    <div class="relative min-h-[200px] h-[calc(100vh-214px)] overflow-auto">
+    <div class="relative min-h-[200px] h-[calc(100vh-180px)] overflow-auto">
         @if (loading) {
         <div class="flex flex-col justify-between h-full w-full">
             <p class="flex justify-center items-center h-full text-lg">
@@ -34,9 +34,9 @@
                 <th mat-header-cell *matHeaderCellDef mat-sort-header>Last Access</th>
                 <td mat-cell *matCellDef="let user">{{ formatTime(user.lastAccessAt) }}</td>
             </ng-container>
-            <ng-container matColumnDef="loginCount">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>Login Count</th>
-                <td mat-cell *matCellDef="let user">{{ user.loginCount || "-" }}</td>
+            <ng-container matColumnDef="accessCount">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Access Count</th>
+                <td mat-cell *matCellDef="let user">{{ user.accessCount || "-" }}</td>
             </ng-container>
             <ng-container matColumnDef="role">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header>Role</th>
@@ -45,10 +45,10 @@
             <ng-container matColumnDef="actions">
                 <th mat-header-cell *matHeaderCellDef>Actions</th>
                 <td mat-cell *matCellDef="let user">
-                    <button mat-icon-button [disabled]="isSelf(user.email)" (click)="editUser(user)">
+                    <button mat-icon-button [disabled]="isSelf(user.id)" (click)="editUser(user)">
                         <mat-icon>edit</mat-icon>
                     </button>
-                    <button mat-icon-button [disabled]="isSelf(user.email)" (click)="deleteUser(user)">
+                    <button mat-icon-button [disabled]="isSelf(user.id)" (click)="deleteUser(user)">
                         <mat-icon>delete</mat-icon>
                     </button>
                 </td>

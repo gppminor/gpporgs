@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
+import { getFunctions, provideFunctions } from '@angular/fire/functions';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -39,6 +40,7 @@ import { AdminOrganizationsComponent } from './components/admin/admin-organizati
 import { AdminUsersComponent } from './components/admin/admin-users/admin-users.component';
 import { AdminComponent } from './components/admin/admin.component';
 import { DashboardComponent } from './components/admin/dashboard/dashboard.component';
+import { ConfirmDeleteComponent } from './components/confirm-delete/confirm-delete.component';
 import { HomeComponent } from './components/home/home.component';
 import { LoginComponent } from './components/login/login.component';
 import { OrganizationComponent } from './components/organization/organization.component';
@@ -60,6 +62,7 @@ import { ToolbarComponent } from './components/toolbar/toolbar.component';
     AdminOrganizationsComponent,
     DashboardComponent,
     ActionUserComponent,
+    ConfirmDeleteComponent,
   ],
   imports: [
     FormsModule,
@@ -90,9 +93,10 @@ import { ToolbarComponent } from './components/toolbar/toolbar.component';
     MatProgressBarModule,
     BrowserAnimationsModule,
     MatProgressSpinnerModule,
-    provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
     provideAuth(() => getAuth()),
     provideFirestore(() => getFirestore()),
+    provideFunctions(() => getFunctions()),
+    provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
   ],
   providers: [
     { provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: { duration: 2000 } },

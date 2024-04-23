@@ -1,9 +1,11 @@
 import { Component, OnDestroy, inject } from '@angular/core';
 import { Auth, signOut } from '@angular/fire/auth';
+import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { AuthService } from 'src/app/services/auth.service';
 import { Role } from 'src/app/types/user';
+import { ConfirmDeleteComponent } from '../confirm-delete/confirm-delete.component';
 
 @Component({
   selector: 'app-toolbar',
@@ -13,6 +15,7 @@ import { Role } from 'src/app/types/user';
 export class ToolbarComponent implements OnDestroy {
   private auth = inject(Auth);
   private router = inject(Router);
+  private dialog = inject(MatDialog);
   authService = inject(AuthService);
 
   Role = Role;
@@ -43,5 +46,7 @@ export class ToolbarComponent implements OnDestroy {
     this.router.navigateByUrl('/login');
   }
 
-  async deleteAccount() {}
+  async deleteAccount() {
+    this.dialog.open(ConfirmDeleteComponent, { disableClose: true });
+  }
 }

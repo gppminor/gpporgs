@@ -44,10 +44,6 @@ export class ActionUserComponent {
     }
   }
 
-  onRole(event: any) {
-    console.log(event);
-  }
-
   async addUser() {
     this.loading = true;
     const role = this.role.value;
@@ -58,14 +54,12 @@ export class ActionUserComponent {
       role,
       createdAt: Date.now(),
       lastAccessAt: 0,
-      loginCount: 0,
+      accessCount: 0,
       name: '',
     };
-    const result = await this.adminService.addUser(userInfo);
-    if (result && result.id) {
+    if (await this.adminService.addUser(userInfo)) {
       this.snackbar.open('User successfully added');
-      userInfo.id = result.id;
-      this.dialogRef.close(userInfo);
+      this.dialogRef.close();
     } else {
       this.snackbar.open('Error adding user');
     }
@@ -79,19 +73,25 @@ export class ActionUserComponent {
     if (!id || !email || !role) return;
     this.loading = true;
     const partial = { email, role };
-    await this.adminService.updateUser(id, partial);
-    this.snackbar.open('User successfully updated');
+    if (await this.adminService.updateUser(id, partial)) {
+      this.snackbar.open('User successfully updated');
+      this.dialogRef.close();
+    } else {
+      this.snackbar.open('Error updating user');
+    }
     this.loading = false;
-    this.dialogRef.close({ id, ...partial });
   }
 
   async deleteUser() {
     const id = this.user?.id;
     if (!id) return;
     this.loading = true;
-    await this.adminService.deleteUser(id);
-    this.snackbar.open('User deleted successfully');
+    if (await this.adminService.deleteUser(id)) {
+      this.snackbar.open('User successfully deleted');
+      this.dialogRef.close();
+    } else {
+      this.snackbar.open('Error deleting user');
+    }
     this.loading = false;
-    this.dialogRef.close(id);
   }
 }

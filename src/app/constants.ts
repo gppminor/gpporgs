@@ -12,6 +12,10 @@ export const COLLECTIONS = {
   TYPES: 'types',
 };
 
+export const CLOUD_FNS = {
+  SET_CLAIMS: 'setClaims',
+};
+
 export const ADMIN_STATS = {
   KEY_APPROVED: 'approved',
   KEY_PENDING: 'pending',

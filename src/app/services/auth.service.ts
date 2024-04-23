@@ -1,79 +1,76 @@
-import { Injectable, OnDestroy, OnInit, inject } from '@angular/core';
+import { Injectable, OnDestroy, inject } from '@angular/core';
 import {
   Auth,
-  getRedirectResult,
+  deleteUser,
   onAuthStateChanged,
   signInWithRedirect,
+  signOut,
   user,
 } from '@angular/fire/auth';
 import {
   Firestore,
   Unsubscribe,
-  collection,
-  collectionData,
+  deleteDoc,
   doc,
-  query,
-  updateDoc,
-  where,
 } from '@angular/fire/firestore';
+import { Functions, httpsCallable } from '@angular/fire/functions';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { GoogleAuthProvider, UserCredential } from 'firebase/auth';
-import { Subject, first } from 'rxjs';
-import { Role } from '../types/user';
+import { GoogleAuthProvider, User } from 'firebase/auth';
+import { BehaviorSubject, Subject } from 'rxjs';
+import { CLOUD_FNS, COLLECTIONS } from 'src/app/constants';
+import { Role } from 'src/app/types/user';
 
 @Injectable({
   providedIn: 'root',
 })
-export class AuthService implements OnInit, OnDestroy {
-  private users = 'users';
+export class AuthService implements OnDestroy {
   private auth = inject(Auth);
-  private firestore = inject(Firestore);
+  private db = inject(Firestore);
   private snackBar = inject(MatSnackBar);
+  private functions = inject(Functions);
   private provider = new GoogleAuthProvider();
 
+  setClaims = httpsCallable(this.functions, CLOUD_FNS.SET_CLAIMS);
+
   user$ = user(this.auth);
-  private email: string | null = null;
+  private uid: string | null = null;
   private role = new Subject<Role>();
   role$ = this.role.asObservable();
 
-  private loading = new Subject<boolean>();
+  private loading = new BehaviorSubject<boolean>(false);
   loading$ = this.loading.asObservable();
 
   private unsubscribe: Unsubscribe;
 
   constructor() {
-    this.unsubscribe = onAuthStateChanged(this.auth, (_user) => {
-      if (_user) {
-        _user.getIdTokenResult(true).then((token) => {
-          if (token.claims['admin']) {
-            this.role.next(Role.ADMIN);
-          }
-          this.loading.next(false);
-        });
-        this.updateLastAccess(_user.email);
-        this.email = _user.email;
-      } else {
-        this.role.next(Role.NONE);
-        this.loading.next(false);
-        this.email = null;
-      }
-    });
-  }
-
-  ngOnInit(): void {
-    // This will be called automatically by browser after user completed authentication
-    // Known issues: Isn't supported by Safari & Firefox browsers
-    getRedirectResult(this.auth)
-      .then((result) => this.updateUser(result))
-      .catch((error) => this.handleError(error));
+    this.loading.next(true);
+    this.unsubscribe = onAuthStateChanged(this.auth, (user: User | null) =>
+      this.onAuthChanged(user)
+    );
   }
 
   ngOnDestroy(): void {
     this.unsubscribe();
   }
 
-  isSelf(email: string): boolean {
-    return this.email === email;
+  async onAuthChanged(user: User | null) {
+    this.loading.next(true);
+    if (!user) {
+      this.uid = null;
+      this.role.next(Role.NONE);
+      this.loading.next(false);
+      return;
+    }
+    await this.setClaims(); // set claims on cloud function
+    const token = await user.getIdTokenResult(true);
+    if (token.claims['admin']) this.role.next(Role.ADMIN);
+    if (token.claims['student']) this.role.next(Role.STUDENT);
+    this.uid = user.uid;
+    this.loading.next(false);
+  }
+
+  isSelf(id: string): boolean {
+    return this.uid === id;
   }
 
   async signIn() {
@@ -81,45 +78,10 @@ export class AuthService implements OnInit, OnDestroy {
     setTimeout(() => signInWithRedirect(this.auth, this.provider), 700);
   }
 
-  updateLastAccess(email: string | null) {
-    if (!email) return;
-    const match = where('email', '==', email);
-    const usersCol = collection(this.firestore, this.users);
-    collectionData(query(usersCol, match), { idField: 'id' })
-      .pipe(first())
-      .subscribe(([_user]) => {
-        const lastAccessAt = Date.now();
-        updateDoc(doc(this.firestore, 'users', _user.id), { lastAccessAt });
-      });
-  }
-
-  updateUser(auth: UserCredential | null) {
-    this.loading.next(false);
-    if (!auth) return;
-    const match = where('email', '==', auth.user.email);
-    const usersCol = collection(this.firestore, this.users);
-    collectionData(query(usersCol, match), { idField: 'id' })
-      .pipe(first())
-      .subscribe(([_user]) => {
-        const docRef = doc(this.firestore, this.users, _user.id);
-        const _update = {
-          name: auth.user.displayName,
-          createdAt: Date.parse(auth.user.metadata.creationTime || ''),
-          loginCount: _user['loginCount'] + 1,
-        };
-        updateDoc(docRef, _update);
-      });
-  }
-
-  private handleError(error: any) {
-    let message = 'An error occurred';
-    if (error.message && error.message.includes('INVALID_ARGUMENT')) {
-      message = 'Invalid email argument';
-    } else if (error.message && error.message.includes('PERMISSION_DENIED')) {
-      message = 'Use your berkeley.edu account';
-    } else if (error.message && error.message.includes('NOT_FOUND')) {
-      message = "You don't have access to GPP Organizations";
-    }
-    this.snackBar.open(message);
+  async deleteCurrentUser() {
+    if (!this.uid || !this.auth.currentUser) return;
+    const uid = this.uid.toString();
+    await deleteUser(this.auth.currentUser);
+    await deleteDoc(doc(this.db, COLLECTIONS.USERS, uid));
   }
 }

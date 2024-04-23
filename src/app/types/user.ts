@@ -1,12 +1,12 @@
-export type User = {
+export class User {
   id?: string;
   role: Role;
   name: string;
   email: string;
   createdAt: number;
   lastAccessAt: number;
-  loginCount: number;
-};
+  accessCount: number;
+}
 
 export enum Role {
   NONE = 'NONE',

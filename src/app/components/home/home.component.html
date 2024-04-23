@@ -1,5 +1,5 @@
-<div class="flex justify-between items-center mt-8">
-  <mat-form-field class="w-1/2">
+<div class="flex justify-between items-center pt-4">
+  <mat-form-field class="sm:w-1/2">
     <mat-label>Search organization</mat-label>
     <mat-icon matPrefix>search</mat-icon>
     <input matInput [formControl]="nameControl" autocomplete="off">
@@ -10,11 +10,16 @@
     }
   </mat-form-field>
   <div>
-    <button mat-flat-button [matMenuTriggerFor]="filters" [disabled]="loading" class="shadow-1">
-      Filters
-      <mat-icon class="vertical-align-middle">filter_list</mat-icon>
-    </button>
-    <mat-menu #filters="matMenu" xPosition="before" class="w-[600px] px-4">
+    <div class="hidden sm:block">
+      <button mat-flat-button [matMenuTriggerFor]="filters" [disabled]="loading">
+        Filters
+        <mat-icon>filter_list</mat-icon>
+      </button>
+    </div>
+    <div class="flex items-center sm:hidden mb-6">
+      <button mat-icon-button [matMenuTriggerFor]="filters"><mat-icon>filter_list</mat-icon></button>
+    </div>
+    <mat-menu #filters="matMenu" xPosition="before" class="sm:w-[600px] px-4">
       @if (ready) {
       <div (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
         <strong class="p-2"><mat-label>Area</mat-label></strong>
@@ -30,12 +35,16 @@
           (change)="setAllSectors($event.checked)" color="primary">All</mat-checkbox>
         <section [formGroup]="sectorControls" class="flex flex-wrap">
           @for (sector of sectors; track sector) {
-          <mat-checkbox formControlName="{{sector.key}}" color="primary" class="w-1/2">{{sector.value}}</mat-checkbox>
+          <mat-checkbox formControlName="{{sector.key}}" color="primary"
+            class="w-full sm:w-1/2">{{sector.value}}</mat-checkbox>
           <br />
           } @empty {
           <p>no records.</p>
           }
         </section>
+      </div>
+      <div class="flex justify-center">
+        <button mat-flat-button class="w-[100px] mt-2" color="primary">Done</button>
       </div>
       }
     </mat-menu>
@@ -45,7 +54,7 @@
   @if (loading) {
   <mat-progress-bar mode="indeterminate" />
   }
-  <div class="relative min-h-[200px] h-[calc(100vh-214px)] overflow-auto">
+  <div class="relative min-h-[200px] h-[calc(100vh-180px)] overflow-auto">
     @if (loading) {
     <div class="flex flex-col justify-between h-full w-full">
       <p class="flex justify-center items-center h-full text-lg">

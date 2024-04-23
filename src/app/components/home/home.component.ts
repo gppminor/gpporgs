@@ -31,6 +31,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   displayCols = ['name', 'type', 'country', 'sectors'];
   dataSource = new MatTableDataSource<Organization>();
 
+  @ViewChild(MatMenuTrigger) menu: MatMenuTrigger;
   @ViewChild(MatSort) sort: MatSort;
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatMenuTrigger) trigger: MatMenuTrigger;
@@ -52,6 +53,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor() {
     this.ready = false;
+    this.loading = true;
     this.userService.ready$
       .pipe(takeUntil(this.destroy$))
       .subscribe((value) => {
@@ -98,6 +100,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.sectorControls = this.fb.group(_sectorControls);
     this.ready = true;
     this.registerSubscriptions();
+  }
+
+  closeFilters() {
+    this.menu.closeMenu();
   }
 
   updateAllSectorsChecked() {

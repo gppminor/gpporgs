@@ -48,13 +48,13 @@ export const onCreate = beforeUserCreated(async (event) => {
     accessCount: 0,
     ...authorized.data(),
   });
-  // clean up no-longer needed attributes
+  // clean up document
   await getFirestore().collection(COL_USERS).doc(email).delete();
 
   info('user created successfully');
 });
 
-// Update login data
+// Update access info
 export const onSignIn = beforeUserSignedIn(async (event) => {
   const email = event.data.email;
   const uid = event.data.uid;
@@ -82,33 +82,30 @@ export const onSignIn = beforeUserSignedIn(async (event) => {
   info('user signed in successfully.');
 });
 
-// Update claims
+// Update user claims
 export const setClaims = onCall(async (request) => {
   const uid = request.auth?.uid;
 
   info(`setting custom claims for ${uid}`);
-  if (!uid) {
-    error('invalid uid');
-    return null;
+
+  try {
+    if (!uid) throw new Error('invalid uid');
+
+    const ref = getFirestore().collection(COL_USERS).doc(uid);
+    const snapshot = await ref.get();
+    if (!snapshot.exists) throw new Error('user does not exist.');
+
+    let claims: object | null = null;
+    const data = snapshot.data();
+    if (data && data.role == ROLE_ADMIN) {
+      claims = { admin: true };
+    } else if (data && data.role == ROLE_STUDENT) {
+      claims = { student: true };
+    }
+    await getAuth().setCustomUserClaims(uid, claims);
+
+    info(`custom claims set successfully with role ${data?.role}`);
+  } catch (e) {
+    error('set claims failed', e);
   }
-
-  const ref = getFirestore().collection(COL_USERS).doc(uid);
-  const snapshot = await ref.get();
-  if (!snapshot.exists) {
-    error('user does not exist.');
-    return null;
-  }
-
-  const data = snapshot.data();
-  let claims: object | null = null;
-  if (data && data.role == ROLE_ADMIN) {
-    claims = { admin: true };
-  } else if (data && data.role == ROLE_STUDENT) {
-    claims = { student: true };
-  }
-
-  await getAuth().setCustomUserClaims(uid, claims);
-  info(`custom claims set successfully with role ${data?.role}`);
-
-  return claims;
 });

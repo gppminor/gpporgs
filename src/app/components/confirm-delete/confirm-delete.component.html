@@ -1,0 +1,9 @@
+<mat-dialog-content class="text-center">
+    <p class="max-w-[400px] mb-2">Are you sure you want to delete your account? You will lose all access to GPP Organizations
+        until you are added back by the admin</p>
+        <span class="text-red-600">This action is irreversible!</span>
+</mat-dialog-content>
+<mat-dialog-actions align="center">
+    <button mat-flat-button mat-dialog-close class="bg-gray-500">Cancel</button>
+    <button mat-flat-button color="warn" [disabled]="loading" (click)="confirmDelete()">Delete</button>
+</mat-dialog-actions>
