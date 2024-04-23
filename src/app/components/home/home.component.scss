@@ -2,22 +2,7 @@
     max-width: none !important;
 }
 
-.table-container {
-    height: calc(100vh - 270px);
-
-    th:nth-child(odd),
-    td:nth-child(odd) {
-        width: 18% !important;
-    }
-
-    th:nth-child(even),
-    td:nth-child(even) {
-        width: 32% !important;
-    }
-
-    .mat-mdc-row:hover,
-    .mat-mdc-row:focus {
-        font-weight: 500;
-        cursor: pointer;
-    }
+.mat-mdc-row:hover {
+    cursor: pointer;
+    opacity: 0.8;
 }

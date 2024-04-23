@@ -10,7 +10,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
-import { Subject, take, takeUntil } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import { AdminService } from 'src/app/services/admin.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { Action } from 'src/app/types/enums';
@@ -28,7 +28,7 @@ export class AdminUsersComponent implements AfterViewInit, OnInit, OnDestroy {
   private authService = inject(AuthService);
   private adminService = inject(AdminService);
 
-  private email: string | null | undefined;
+  private uid: string | undefined;
   Role = Role;
 
   displayCols = [
@@ -47,7 +47,6 @@ export class AdminUsersComponent implements AfterViewInit, OnInit, OnDestroy {
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
   formatTime = formatTime;
-  isSelf = this.authService.isSelf
 
   private destroy$ = new Subject<void>();
 
@@ -56,7 +55,7 @@ export class AdminUsersComponent implements AfterViewInit, OnInit, OnDestroy {
 
     this.authService.user$
       .pipe(takeUntil(this.destroy$))
-      .subscribe((user) => (this.email = user?.email));
+      .subscribe((user) => (this.uid = user?.uid));
 
     this.adminService.users$
       .pipe(takeUntil(this.destroy$))
@@ -75,6 +74,8 @@ export class AdminUsersComponent implements AfterViewInit, OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
+
+  isSelf = (id: string): boolean => id === this.uid;
 
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;

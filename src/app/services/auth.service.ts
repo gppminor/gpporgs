@@ -4,7 +4,6 @@ import {
   deleteUser,
   onAuthStateChanged,
   signInWithRedirect,
-  signOut,
   user,
 } from '@angular/fire/auth';
 import {
@@ -54,6 +53,7 @@ export class AuthService implements OnDestroy {
   }
 
   async onAuthChanged(user: User | null) {
+    this.uid = user?.uid || null;
     this.loading.next(true);
     if (!user) {
       this.uid = null;
@@ -65,12 +65,8 @@ export class AuthService implements OnDestroy {
     const token = await user.getIdTokenResult(true);
     if (token.claims['admin']) this.role.next(Role.ADMIN);
     if (token.claims['student']) this.role.next(Role.STUDENT);
-    this.uid = user.uid;
-    this.loading.next(false);
-  }
 
-  isSelf(id: string): boolean {
-    return this.uid === id;
+    this.loading.next(false);
   }
 
   async signIn() {
