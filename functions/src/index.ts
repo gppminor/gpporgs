@@ -109,3 +109,19 @@ export const setClaims = onCall(async (request) => {
     error('set claims failed', e);
   }
 });
+
+export const delUser = onCall(async (request) => {
+  const uid = request.auth?.uid;
+  const targetUser = request.data.uid;
+  console.log(request);
+  info('deleting user of id:', targetUser);
+  try {
+    if (!uid) throw new Error('user not authenticated');
+    if (!targetUser) throw new Error('invalid user id provided');
+    await getFirestore().collection(COL_USERS).doc(targetUser).delete();
+    await getAuth().deleteUser(targetUser);
+    info('user deleted successfully');
+  } catch (e) {
+    error('delete user failed', e);
+  }
+});

@@ -14,6 +14,7 @@ export const COLLECTIONS = {
 
 export const CLOUD_FNS = {
   SET_CLAIMS: 'setClaims',
+  DEL_USER: 'delUser',
 };
 
 export const ADMIN_STATS = {

@@ -1,22 +1,15 @@
 import { Injectable, OnDestroy, inject } from '@angular/core';
 import {
   Auth,
-  deleteUser,
   onAuthStateChanged,
   signInWithRedirect,
   user,
 } from '@angular/fire/auth';
-import {
-  Firestore,
-  Unsubscribe,
-  deleteDoc,
-  doc,
-} from '@angular/fire/firestore';
+import { Firestore, Unsubscribe } from '@angular/fire/firestore';
 import { Functions, httpsCallable } from '@angular/fire/functions';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { GoogleAuthProvider, User } from 'firebase/auth';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { CLOUD_FNS, COLLECTIONS } from 'src/app/constants';
+import { CLOUD_FNS } from 'src/app/constants';
 import { Role } from 'src/app/types/user';
 
 @Injectable({
@@ -25,11 +18,11 @@ import { Role } from 'src/app/types/user';
 export class AuthService implements OnDestroy {
   private auth = inject(Auth);
   private db = inject(Firestore);
-  private snackBar = inject(MatSnackBar);
   private functions = inject(Functions);
   private provider = new GoogleAuthProvider();
 
   setClaims = httpsCallable(this.functions, CLOUD_FNS.SET_CLAIMS);
+  delUser = httpsCallable(this.functions, CLOUD_FNS.DEL_USER);
 
   user$ = user(this.auth);
   private uid: string | null = null;
@@ -75,9 +68,7 @@ export class AuthService implements OnDestroy {
   }
 
   async deleteCurrentUser() {
-    if (!this.uid || !this.auth.currentUser) return;
-    const uid = this.uid.toString();
-    await deleteUser(this.auth.currentUser);
-    await deleteDoc(doc(this.db, COLLECTIONS.USERS, uid));
+    if (!this.uid) return;
+    await this.delUser({ uid: this.uid });
   }
 }

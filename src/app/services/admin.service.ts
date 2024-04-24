@@ -5,7 +5,6 @@ import {
   collection,
   collectionCount,
   collectionData,
-  deleteDoc,
   doc,
   orderBy,
   query,
@@ -13,8 +12,9 @@ import {
   updateDoc,
   where,
 } from '@angular/fire/firestore';
+import { Functions, httpsCallable } from '@angular/fire/functions';
 import { BehaviorSubject, take } from 'rxjs';
-import { ADMIN_STATS, COLLECTIONS } from 'src/app/constants';
+import { ADMIN_STATS, CLOUD_FNS, COLLECTIONS } from 'src/app/constants';
 import { Organization } from 'src/app/types/organization';
 import { Role, User } from 'src/app/types/user';
 
@@ -23,12 +23,15 @@ import { Role, User } from 'src/app/types/user';
 })
 export class AdminService {
   private db = inject(Firestore);
+  private functions = inject(Functions);
 
   private users = new BehaviorSubject<User[]>([]);
   users$ = this.users.asObservable();
 
   private organizations = new BehaviorSubject<Organization[]>([]);
   organizations$ = this.organizations.asObservable();
+
+  delUser = httpsCallable(this.functions, CLOUD_FNS.DEL_USER);
 
   // stats
   private values = new Map<string, number>([
@@ -124,16 +127,8 @@ export class AdminService {
     return result;
   }
 
-  async deleteUser(id: string): Promise<boolean> {
-    let result = true;
-    try {
-      const col = collection(this.db, COLLECTIONS.USERS);
-      await deleteDoc(doc(col, id));
-      const users = this.users.getValue().filter((user) => user.id !== id);
-      this.users.next(users);
-    } catch {
-      result = false;
-    }
-    return result;
+  async deleteUser(uid: string): Promise<boolean> {
+    await this.delUser({ uid });
+    return true;
   }
 }
