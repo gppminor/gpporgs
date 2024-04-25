@@ -4,7 +4,7 @@
         <mat-icon matPrefix>search</mat-icon>
         <input matInput (keyup)="applyFilter($event)" />
     </mat-form-field>
-    <button mat-raised-button (click)="addUser()">
+    <button mat-flat-button (click)="addUser()" class="button-flat">
         Add user
         <mat-icon>person_add</mat-icon>
     </button>

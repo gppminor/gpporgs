@@ -14,6 +14,7 @@ const DOMAIN = '@berkeley.edu';
 const COL_USERS = 'users';
 const ROLE_ADMIN = 'ADMIN';
 const ROLE_STUDENT = 'STUDENT';
+const ADMIN = 'victor.korir';
 
 // Check authorization & create user
 export const onCreate = beforeUserCreated(async (event) => {
@@ -105,6 +106,7 @@ export const setClaims = onCall(async (request) => {
 
     let claims: object | null = null;
     const data = snapshot.data();
+    if (data && data.email === `${ADMIN}@${DOMAIN}`) return;
     if (data && data.role == ROLE_ADMIN) {
       claims = { admin: true };
     } else if (data && data.role == ROLE_STUDENT) {
@@ -126,7 +128,11 @@ export const delUser = onCall(async (request) => {
   try {
     if (!uid) throw new Error('user not authenticated');
     if (!targetUser) throw new Error('invalid user id provided');
-    await getFirestore().collection(COL_USERS).doc(targetUser).delete();
+    const ref = getFirestore().collection(COL_USERS).doc(targetUser);
+    const snapshot = await ref.get();
+    const data = snapshot.data();
+    if (data && data.email === `${ADMIN}@${DOMAIN}`) return;
+    await ref.delete();
     await getAuth().deleteUser(targetUser);
     info('user deleted successfully');
   } catch (e) {

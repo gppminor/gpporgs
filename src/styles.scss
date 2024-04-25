@@ -33,6 +33,7 @@ body {
   font-family: Roboto, "Helvetica Neue", sans-serif;
 }
 
-.mat-mdc-row:nth-child(odd), #filter-button {
+.mat-mdc-row:nth-child(odd),
+button.button-flat.mdc-button {
   @apply bg-gray-200;
 }

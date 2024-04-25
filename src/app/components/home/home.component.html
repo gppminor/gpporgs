@@ -11,9 +11,9 @@
   </mat-form-field>
   <div>
     <div class="hidden sm:block">
-      <button id="filter-button" mat-flat-button [matMenuTriggerFor]="filters" [disabled]="loading">
-        Filters
+      <button mat-flat-button [matMenuTriggerFor]="filters" [disabled]="loading" class="button-flat">
         <mat-icon>filter_list</mat-icon>
+        Filters
       </button>
     </div>
     <div class="flex items-center sm:hidden mb-6">
@@ -44,7 +44,7 @@
         </section>
       </div>
       <div class="flex justify-center">
-        <button mat-flat-button class="w-[100px] mt-2" color="primary">Done</button>
+        <button mat-flat-button class="w-[100px] mt-2 button-flat">Done</button>
       </div>
       }
     </mat-menu>

@@ -1,10 +1,11 @@
 <h1 mat-dialog-title>{{titles.get(action)}}</h1>
-<mat-dialog-content>
+<mat-dialog-content class="max-w-[400px]">
     @if (action == Action.ADD || action == Action.EDIT) {
     <form class="flex flex-col">
         <mat-form-field>
             <mat-label>Username</mat-label>
-            <input [formControl]="username" matInput placeholder="CalNet ID" required>
+            <input [formControl]="username" matInput placeholder="CalNet ID" (keypress)="userInput($event)"
+                (input)="userPaste()" required>
             <span matTextSuffix>{{domain}}</span>
         </mat-form-field>
         <mat-form-field>
@@ -18,7 +19,7 @@
     </form>
     }
     @if (action == Action.DELETE) {
-    <p>Are you sure you want to remove <strong class="text-primary">{{user?.email}}</strong>?</p>
+    <p class="text-center">Are you sure you want to remove <strong class="text-primary">{{user?.email}}</strong>?</p>
     }
 
 </mat-dialog-content>
@@ -28,7 +29,7 @@
 <mat-divider></mat-divider>
 }
 <mat-dialog-actions align="center">
-    <button mat-flat-button mat-dialog-close color="warn">Close</button>
+    <button mat-flat-button mat-dialog-close class="button-flat">Close</button>
     @switch (action) {
     @case (Action.ADD) {
     <button mat-flat-button color="primary" [disabled]="loading || !username.valid" (click)="addUser()">Add

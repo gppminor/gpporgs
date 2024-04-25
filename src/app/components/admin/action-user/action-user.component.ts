@@ -32,6 +32,7 @@ export class ActionUserComponent {
   readonly domain = '@berkeley.edu';
   loading = false;
 
+  allowed = /[a-zA-Z0-9_.]/;
   username = this.fb.control<string | null>(null, Validators.required);
   role = this.fb.control<Role>(Role.STUDENT, Validators.required);
 
@@ -42,6 +43,22 @@ export class ActionUserComponent {
       this.username.setValue(this.user.email.split('@')[0]);
       this.role.setValue(this.user.role);
     }
+  }
+
+  userInput(event: KeyboardEvent) {
+    if (!this.allowed.test(event.key)) event.preventDefault();
+  }
+
+  userPaste() {
+    this.loading = true;
+    const pasted = this.username.value || '';
+    let valid = '';
+    for (const char of pasted.split('')) {
+      if (!this.allowed.test(char)) break;
+      valid += char;
+    }
+    if (pasted !== valid) this.username.setValue(valid);
+    this.loading = false;
   }
 
   async addUser() {

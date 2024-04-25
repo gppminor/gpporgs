@@ -13,7 +13,6 @@ import { HomeComponent } from './components/home/home.component';
 import { LoginComponent } from './components/login/login.component';
 import { DetailComponent } from './components/organization/detail/detail.component';
 import { OrganizationComponent } from './components/organization/organization.component';
-import { ReviewComponent } from './components/organization/review/review.component';
 import { ReviewsComponent } from './components/organization/reviews/reviews.component';
 
 // custom claims are set in cloud function:setClaims
@@ -37,7 +36,6 @@ const routes: Routes = [
     children: [
       { path: '', component: OrganizationComponent },
       { path: 'reviews', component: ReviewsComponent },
-      { path: 'review/:rId', component: ReviewComponent },
     ],
   },
   {
