@@ -2,27 +2,25 @@
     @if (loading) {
     <mat-progress-bar mode="indeterminate" />
     } @else {
-    <mat-card-content>
-        <div class="overflow-y-auto">
-            <mat-accordion>
-                @for (review of reviews; track review.id; let idx = $index) {
-                <mat-expansion-panel>
-                    <mat-expansion-panel-header>
-                        <mat-panel-title>
-                            Review #{{idx + 1}}
-                            <i class="text-gray-400 ml-4">posted {{formatTime(review.createdAt)}}</i>
-                        </mat-panel-title>
-                        <mat-panel-description>
-                            open to see review details
-                        </mat-panel-description>
-                    </mat-expansion-panel-header>
-                    <app-review [data]="review" />
-                </mat-expansion-panel>
-                } @empty {
-                <p>No review yet.</p>
-                }
-            </mat-accordion>
-        </div>
+    <mat-card-content class="overflow-hidden pb-4">
+        <mat-accordion>
+            @for (review of reviews; track review.id; let idx = $index) {
+            <mat-expansion-panel>
+                <mat-expansion-panel-header>
+                    <mat-panel-title>
+                        Review #{{idx + 1}}
+                        <i class="text-gray-400 ml-4">posted {{formatTime(review.createdAt)}}</i>
+                    </mat-panel-title>
+                    <mat-panel-description>
+                        open to see review details
+                    </mat-panel-description>
+                </mat-expansion-panel-header>
+                <app-review [data]="review" />
+            </mat-expansion-panel>
+            } @empty {
+            <p>No review yet.</p>
+            }
+        </mat-accordion>
     </mat-card-content>
     }
 </mat-card>
