@@ -5,15 +5,15 @@ import { Router } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
-  selector: 'app-confirm-delete',
-  templateUrl: './confirm-delete.component.html',
-  styleUrl: './confirm-delete.component.scss',
+  selector: 'app-delete',
+  templateUrl: './delete.component.html',
+  styleUrl: './delete.component.scss',
 })
-export class ConfirmDeleteComponent {
+export class DeleteComponent {
   private authService = inject(AuthService);
   private auth = inject(Auth);
   private router = inject(Router);
-  private dialogRef = inject(MatDialogRef<ConfirmDeleteComponent>);
+  private dialogRef = inject(MatDialogRef<DeleteComponent>);
   loading = false;
 
   async confirmDelete() {

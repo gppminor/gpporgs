@@ -20,16 +20,15 @@ export class ReviewsComponent implements OnInit, OnDestroy {
 
   formatTime = formatTime;
 
-  // formGroup = this.fb.group({});
+  private organizationId: string;
   reviews: Review[];
-  isLoading = false;
-
-  // For auto-unsubscribe
+  loading = false;
   private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
-    const organizationId = this.route.snapshot.paramMap.get('id');
-    if (organizationId) this.fetchReview(organizationId);
+    this.route.parent?.paramMap
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((map) => this.getReviews(map.get('id')));
   }
 
   ngOnDestroy(): void {
@@ -37,25 +36,19 @@ export class ReviewsComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private fetchReview(organizationId: string) {
-    this.isLoading = true;
+  private getReviews(id: string | null) {
+    if (!id || id === this.organizationId) return;
+    this.organizationId = id;
+    this.loading = true;
     this.reviews = [];
     this.fireService
-      .getReviews(organizationId)
+      .getReviews(id)
       .pipe(takeUntil(this.destroy$))
       .subscribe((_reviews) => {
-        // const reviewControls = [];
         for (let _review of _reviews) {
-          // const reviewControl: any = {};
-          // for (let key of Object.keys(new Review())) {
-          //   reviewControl[key] = _review[key];
-          // }
-          // reviewControls.push(this.fb.group(reviewControl));
           this.reviews.push(_review);
-          // this.fetchAddress(_review.address);
         }
-        // this.formGroup.addControl('reviews', this.fb.array(reviewControls));
-        this.isLoading = false;
+        this.loading = false;
       });
   }
 

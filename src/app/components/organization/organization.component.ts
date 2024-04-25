@@ -1,5 +1,5 @@
 import { Location } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, inject } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -12,7 +12,7 @@ import { Organization } from 'src/app/types/organization';
   templateUrl: './organization.component.html',
   styleUrl: './organization.component.scss',
 })
-export class OrganizationComponent implements OnInit, OnDestroy {
+export class OrganizationComponent implements OnDestroy {
   private router = inject(Router);
   private fb = inject(FormBuilder);
   private location = inject(Location);
@@ -27,15 +27,14 @@ export class OrganizationComponent implements OnInit, OnDestroy {
   contactIds: string[];
   isReadOnly = true;
 
-  id: string | null;
+  private organizationId: string | null;
   loading = { organization: true, address: true, contacts: true };
 
   // For auto-unsubscribe
   private destroy$ = new Subject<void>();
 
-  ngOnInit(): void {
-    this.id = this.route.snapshot.paramMap.get('id');
-    this.fetchOrganzation();
+  constructor() {
+    this.fetchOrganzation(this.route.snapshot.paramMap.get('id'));
   }
 
   ngOnDestroy(): void {
@@ -43,13 +42,11 @@ export class OrganizationComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  fetchOrganzation() {
-    if (!this.id) {
-      this.snackBar.open('Organization not found');
-      return;
-    }
+  fetchOrganzation(id: string | null) {
+    if (!id || id === this.organizationId) return;
+    this.organizationId = id;
     this.fireService
-      .getOrganization(this.id)
+      .getOrganization(id)
       .pipe(takeUntil(this.destroy$))
       .subscribe((_organization) => {
         if (_organization) {
@@ -110,8 +107,8 @@ export class OrganizationComponent implements OnInit, OnDestroy {
     }
   }
 
-  goBack() {
-    this.location.back();
+  goHome() {
+    this.router.navigate(['/']);
   }
 
   actionEdit() {
@@ -119,6 +116,6 @@ export class OrganizationComponent implements OnInit, OnDestroy {
   }
 
   actionReviews() {
-    this.router.navigate(['organization', this.id, 'reviews']);
+    this.router.navigate(['organization', this.organizationId, 'reviews']);
   }
 }

@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { AuthService } from 'src/app/services/auth.service';
 import { Role } from 'src/app/types/user';
-import { ConfirmDeleteComponent } from '../confirm-delete/confirm-delete.component';
+import { DeleteComponent } from '../delete/delete.component';
 
 @Component({
   selector: 'app-toolbar',
@@ -47,6 +47,6 @@ export class ToolbarComponent implements OnDestroy {
   }
 
   async deleteAccount() {
-    this.dialog.open(ConfirmDeleteComponent, { disableClose: true });
+    this.dialog.open(DeleteComponent, { disableClose: true });
   }
 }

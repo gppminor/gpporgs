@@ -40,12 +40,13 @@ import { AdminOrganizationsComponent } from './components/admin/admin-organizati
 import { AdminUsersComponent } from './components/admin/admin-users/admin-users.component';
 import { AdminComponent } from './components/admin/admin.component';
 import { DashboardComponent } from './components/admin/dashboard/dashboard.component';
-import { ConfirmDeleteComponent } from './components/confirm-delete/confirm-delete.component';
+import { DeleteComponent } from './components/delete/delete.component';
 import { HomeComponent } from './components/home/home.component';
 import { LoginComponent } from './components/login/login.component';
+import { DetailComponent } from './components/organization/detail/detail.component';
 import { OrganizationComponent } from './components/organization/organization.component';
-import { ReviewComponent } from './components/reviews/review/review.component';
-import { ReviewsComponent } from './components/reviews/reviews.component';
+import { ReviewComponent } from './components/organization/review/review.component';
+import { ReviewsComponent } from './components/organization/reviews/reviews.component';
 import { ToolbarComponent } from './components/toolbar/toolbar.component';
 
 @NgModule({
@@ -62,7 +63,8 @@ import { ToolbarComponent } from './components/toolbar/toolbar.component';
     AdminOrganizationsComponent,
     DashboardComponent,
     ActionUserComponent,
-    ConfirmDeleteComponent,
+    DeleteComponent,
+    DetailComponent,
   ],
   imports: [
     FormsModule,

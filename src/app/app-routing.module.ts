@@ -11,8 +11,10 @@ import { AdminComponent } from './components/admin/admin.component';
 import { DashboardComponent } from './components/admin/dashboard/dashboard.component';
 import { HomeComponent } from './components/home/home.component';
 import { LoginComponent } from './components/login/login.component';
+import { DetailComponent } from './components/organization/detail/detail.component';
 import { OrganizationComponent } from './components/organization/organization.component';
-import { ReviewsComponent } from './components/reviews/reviews.component';
+import { ReviewComponent } from './components/organization/review/review.component';
+import { ReviewsComponent } from './components/organization/reviews/reviews.component';
 
 // custom claims are set in cloud function:setClaims
 const adminOnly = () => hasCustomClaim('admin');
@@ -30,13 +32,13 @@ const routes: Routes = [
   },
   {
     path: 'organization/:id',
-    component: OrganizationComponent,
+    component: DetailComponent,
     ...canActivate(redirectUnauthorizedToLogin),
-  },
-  {
-    path: 'organization/:id/reviews',
-    component: ReviewsComponent,
-    ...canActivate(redirectUnauthorizedToLogin),
+    children: [
+      { path: '', component: OrganizationComponent },
+      { path: 'reviews', component: ReviewsComponent },
+      { path: 'review/:rId', component: ReviewComponent },
+    ],
   },
   {
     path: 'admin',

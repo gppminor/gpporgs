@@ -1,11 +1,8 @@
-<button mat-button class="shadow-1 mb-2" (click)="goBack()">
-    <mat-icon>arrow_back_ios</mat-icon> Back
-</button>
-<mat-card>
-    <mat-card-header>
-        <h3>Organization Details</h3>
-    </mat-card-header>
-    <mat-card-content *ngIf="!loading.organization && !loading.address" class="overflow-y-auto">
+<mat-card class="max-h-[calc(100vh-130px)]">
+    @if (loading.organization || loading.address || loading.contacts) {
+    <mat-progress-bar mode="indeterminate" />
+    } @else {
+    <mat-card-content class="overflow-y-auto">
         <form [formGroup]="formGroup" class="flex justify-content-between">
             <div class="flex flex-column md:flex-row">
                 <div class="mr-1">
@@ -54,9 +51,9 @@
                 </div>
             </div>
         </form>
-        <form *ngIf="!loading.contacts" [formGroup]="contacts">
+        <form [formGroup]="contacts">
             <h3>Contacts Info</h3>
-            <div class="overflow-y-auto h-16rem">
+            <div class="overflow-y-auto">
                 <mat-accordion>
                     @for (id of contactIds; track id; let idx = $index) {
                     <mat-expansion-panel formGroupName="{{id}}" class="w-full">
@@ -66,19 +63,19 @@
                                 open to see contact details
                             </mat-panel-description>
                         </mat-expansion-panel-header>
-                        <mat-form-field class="w-4 mr-2">
+                        <mat-form-field class="w-1/3 mr-2">
                             <mat-label>Name</mat-label>
                             <input matInput formControlName="name" [readonly]="isReadOnly">
                         </mat-form-field>
-                        <mat-form-field class="w-4 mr-2">
+                        <mat-form-field class="w-1/3 mr-2">
                             <mat-label>Role</mat-label>
                             <input matInput formControlName="role" [readonly]="isReadOnly">
                         </mat-form-field>
-                        <mat-form-field class="w-4 mr-2">
+                        <mat-form-field class="w-1/3 mr-2">
                             <mat-label>Email</mat-label>
                             <input matInput formControlName="email" [readonly]="isReadOnly">
                         </mat-form-field>
-                        <mat-form-field class="w-4 mr-2">
+                        <mat-form-field class="w-1/3 mr-2">
                             <mat-label>Phone</mat-label>
                             <input matInput formControlName="phone" [readonly]="isReadOnly">
                         </mat-form-field>
@@ -90,13 +87,5 @@
             </div>
         </form>
     </mat-card-content>
-    <mat-card-actions class="flex justify-content-center">
-        <button mat-flat-button (click)="actionEdit()">Edit</button>
-        <mat-divider vertical class="h-1rem"></mat-divider>
-        <button mat-flat-button (click)="actionReviews()">Check Reviews <mat-icon
-                matSuffix>arrow_forward_ios</mat-icon></button>
-    </mat-card-actions>
-    <mat-card-footer *ngIf="loading.organization">
-        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-    </mat-card-footer>
+    }
 </mat-card>

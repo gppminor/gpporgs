@@ -27,7 +27,6 @@ export class ReviewComponent implements OnInit {
   private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
-    console.log(this.data);
     this.initControls();
     this.fetchAddress();
   }

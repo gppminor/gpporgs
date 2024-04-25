@@ -1,0 +1,14 @@
+<div class="flex items-center pt-2">
+    <button mat-button class="shadow-1 mb-2" (click)="home()">
+        Home
+    </button>
+    <mat-icon class="text-sm mb-1">arrow_forward_ios</mat-icon>
+    <button mat-button class="shadow-1 mb-2" [disabled]="isDetailView" (click)="organization()">
+        Organization
+    </button>
+    <mat-icon class="text-sm mb-1">arrow_forward_ios</mat-icon>
+    <button mat-button class="shadow-1 mb-2" [disabled]="isReviewsView" (click)="reviews()">
+        Reviews
+    </button>
+</div>
+<router-outlet />
