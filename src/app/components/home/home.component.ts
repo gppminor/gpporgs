@@ -45,7 +45,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   filterValues = new Filter();
 
   isAllSectorsChecked = true;
-  loading = false;
+  loading$ = this.userService.loading$;
   ready = true;
 
   // For auto-unsubscribe
@@ -53,23 +53,16 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor() {
     this.ready = false;
-    this.loading = true;
-    this.userService.ready$
+    this.userService.loading$
       .pipe(takeUntil(this.destroy$))
-      .subscribe((value) => {
-        if (value) {
-          this.initFilterControls();
-        }
-      });
+      .subscribe((value) => !value && this.initFilterControls());
   }
 
   ngOnInit(): void {
-    this.loading = true;
     this.userService.organizations$
       .pipe(takeUntil(this.destroy$))
       .subscribe((orgs) => {
         this.dataSource.data = orgs;
-        this.loading = false;
       });
   }
 
@@ -137,10 +130,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.nameControl.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe((name) => {
-        if (name) {
-          this.filterValues.name = name.trim().toLowerCase();
-          this.dataSource.filter = JSON.stringify(this.filterValues);
-        }
+        this.filterValues.name = name?.trim().toLowerCase() || '';
+        this.dataSource.filter = JSON.stringify(this.filterValues);
       });
 
     this.areaControls.valueChanges
@@ -182,8 +173,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
           .length > 0;
 
       return _nameMatch && _areaMatch && _sectorsMatch;
-    } catch (e) {
-      return true; // fail safe
+    } catch {
+      return true;
     }
   }
 

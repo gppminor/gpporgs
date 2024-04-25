@@ -1,12 +1,10 @@
 <div class="flex flex-col items-start justify-center h-[400px] sm:h-[550px] gap-4">
     <h1 class="text-2xl">Hello!</h1>
     <p class="text-lg">Welcome to the new GPP Website! You need to be signed in to continue.</p>
-    <div class="button-container">
-        <button mat-raised-button [disabled]="loading" (click)="login()" color="primary">Sign In</button>
+    <div class="">
+        <button mat-flat-button [disabled]="loading" (click)="login()" color="primary">Sign In</button>
         @if (loading) {
-        <div class="spinner-container">
-            <mat-spinner diameter="32"></mat-spinner>
-        </div>
+        <mat-progress-bar mode="indeterminate" class="-mt-1" />
         }
     </div>
 </div>

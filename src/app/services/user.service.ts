@@ -26,14 +26,15 @@ export class UserService {
   readonly sectors = new Map<string, string>();
   readonly types = new Map<string, string>();
 
-  private pendingLoad = 6;
-  private ready = new BehaviorSubject<boolean>(false);
-  ready$ = this.ready.asObservable();
+  private pendingLoad = 7;
+  private loading = new BehaviorSubject<boolean>(false);
+  loading$ = this.loading.asObservable();
 
   private organizations = new BehaviorSubject<any[]>([]);
   organizations$ = this.organizations.asObservable();
 
   constructor() {
+    this.loading.next(true);
     this.fetchData(COLLECTIONS.AFFILIATIONS, this.affiliations);
     this.fetchData(COLLECTIONS.COUNTRIES, this.countries);
     this.fetchData(COLLECTIONS.LANGUAGES, this.languages);
@@ -47,12 +48,10 @@ export class UserService {
     const id = { idField: 'id' };
     collectionData(collection(this.db, col), id)
       .pipe(take(1))
-      .subscribe((_data) => {
-        _data.forEach(({ id, code, name }) => store.set(id || code, name));
+      .subscribe((data) => {
+        data.forEach(({ id, code, name }) => store.set(id || code, name));
         this.pendingLoad--;
-        if (this.pendingLoad == 0) {
-          this.ready.next(true);
-        }
+        if (this.pendingLoad == 0) this.loading.next(false);
       });
   }
 
@@ -62,7 +61,11 @@ export class UserService {
     const condition = where('approved', '==', true);
     collectionData(query(col, condition, orderBy('name', 'asc')), id)
       .pipe(take(1))
-      .subscribe((data) => this.organizations.next(data));
+      .subscribe((data) => {
+        this.organizations.next(data);
+        this.pendingLoad--;
+        if (this.pendingLoad == 0) this.loading.next(false);
+      });
   }
 
   getOrganization(id: string): Observable<any> {

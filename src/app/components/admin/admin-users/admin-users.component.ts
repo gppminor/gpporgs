@@ -41,7 +41,7 @@ export class AdminUsersComponent implements AfterViewInit, OnInit, OnDestroy {
   ];
 
   dataSource = new MatTableDataSource<User>();
-  loading = false;
+  loading$ = this.adminService.loading$;
 
   @ViewChild(MatSort) sort: MatSort;
   @ViewChild(MatPaginator) paginator: MatPaginator;
@@ -51,18 +51,13 @@ export class AdminUsersComponent implements AfterViewInit, OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
-    this.loading = true;
-
     this.authService.user$
       .pipe(takeUntil(this.destroy$))
       .subscribe((user) => (this.uid = user?.uid));
 
     this.adminService.users$
       .pipe(takeUntil(this.destroy$))
-      .subscribe((users) => {
-        this.dataSource.data = users;
-        this.loading = false;
-      });
+      .subscribe((users) => (this.dataSource.data = users));
   }
 
   ngAfterViewInit(): void {

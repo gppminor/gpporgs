@@ -44,7 +44,11 @@ export class AdminService {
   private stats = new BehaviorSubject<Map<string, number>>(this.values);
   stats$ = this.stats.asObservable();
 
+  private loading = new BehaviorSubject<boolean>(false);
+  loading$ = this.loading.asObservable();
+
   constructor() {
+    this.loading.next(true);
     this.fetchStat(
       COLLECTIONS.ORGANIZATIONS,
       ADMIN_STATS.KEY_APPROVED,
@@ -91,7 +95,10 @@ export class AdminService {
     const col = collection(this.db, COLLECTIONS.USERS);
     collectionData(query(col), id)
       .pipe(take(1))
-      .subscribe((data) => this.users.next(data as User[]));
+      .subscribe((data) => {
+        this.users.next(data as User[]);
+        this.loading.next(false);
+      });
   }
 
   // TODO:

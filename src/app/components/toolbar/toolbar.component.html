@@ -4,7 +4,7 @@
             <span class="cursor-pointer text-xl sm:text-2xl font-bold text-white" routerLink="/">
                 GPP Organizations
             </span>
-            <div class="flex text-white text-lg font-bold gap-4">
+            <div class="flex text-white font-bold gap-4">
                 @if (authService.user$| async) {
                 <button mat-icon-button [matMenuTriggerFor]="menu"><mat-icon>menu</mat-icon></button>
                 <mat-menu #menu="matMenu" xPosition="before">
