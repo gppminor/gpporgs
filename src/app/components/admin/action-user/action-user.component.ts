@@ -49,15 +49,7 @@ export class ActionUserComponent {
     const role = this.role.value;
     const email = `${this.username.value}${this.domain}`;
     if (!role || !email) return;
-    const userInfo: User = {
-      email,
-      role,
-      createdAt: Date.now(),
-      lastAccessAt: 0,
-      accessCount: 0,
-      name: '',
-    };
-    if (await this.adminService.addUser(userInfo)) {
+    if (await this.adminService.addUser(email, role)) {
       this.snackbar.open('User successfully added');
       this.dialogRef.close();
     } else {
@@ -72,8 +64,7 @@ export class ActionUserComponent {
     const role = this.role.value;
     if (!id || !email || !role) return;
     this.loading = true;
-    const partial = { email, role };
-    if (await this.adminService.updateUser(id, partial)) {
+    if (await this.adminService.updateUser(id, email, role)) {
       this.snackbar.open('User successfully updated');
       this.dialogRef.close();
     } else {

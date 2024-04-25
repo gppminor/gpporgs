@@ -6,7 +6,6 @@ import {
   collectionCount,
   collectionData,
   doc,
-  orderBy,
   query,
   setDoc,
   updateDoc,
@@ -31,6 +30,7 @@ export class AdminService {
   private organizations = new BehaviorSubject<Organization[]>([]);
   organizations$ = this.organizations.asObservable();
 
+  setClaims = httpsCallable(this.functions, CLOUD_FNS.SET_CLAIMS);
   delUser = httpsCallable(this.functions, CLOUD_FNS.DEL_USER);
 
   // stats
@@ -89,7 +89,7 @@ export class AdminService {
   private fetchUsers() {
     const id = { idField: 'id' };
     const col = collection(this.db, COLLECTIONS.USERS);
-    collectionData(query(col, orderBy('name', 'asc')), id)
+    collectionData(query(col), id)
       .pipe(take(1))
       .subscribe((data) => this.users.next(data as User[]));
   }
@@ -97,38 +97,51 @@ export class AdminService {
   // TODO:
   private fetchOrganizations() {}
 
-  async addUser(userInfo: User): Promise<boolean> {
+  async addUser(email: string, role: Role): Promise<boolean> {
     let result = true;
     try {
-      const ref = doc(this.db, COLLECTIONS.USERS, userInfo.email);
-      await setDoc(ref, userInfo);
-      userInfo.id = userInfo.email;
-      const users = [...this.users.getValue(), userInfo];
+      const user: any = { email, role };
+      const ref = doc(this.db, COLLECTIONS.USERS, email);
+      await setDoc(ref, user);
+      user.id = email;
+      const users = [...this.users.getValue(), user];
       this.users.next(users);
-    } catch (e) {
+    } catch {
       result = false;
     }
     return result;
   }
 
-  async updateUser(id: string, partial: any): Promise<boolean> {
+  async updateUser(id: string, email: string, role: Role): Promise<boolean> {
     let result = true;
     try {
+      const user = { email, role };
       const ref = doc(this.db, COLLECTIONS.USERS, id);
-      await updateDoc(ref, partial);
+      await updateDoc(ref, user);
       const users = this.users.getValue().map((user) => {
         if (user.id !== id) return user;
-        return { ...user, ...partial };
+        if (user.role !== role) {
+          // update user claims on firebase auth
+          this.setClaims({ uid: id });
+        }
+        return { ...user, email, role };
       });
       this.users.next(users);
-    } catch (e) {
+    } catch {
       result = false;
     }
     return result;
   }
 
   async deleteUser(uid: string): Promise<boolean> {
-    await this.delUser({ uid });
-    return true;
+    let result = true;
+    try {
+      await this.delUser({ uid });
+      const users = this.users.getValue().filter((user) => user.id !== uid);
+      this.users.next(users);
+    } catch {
+      result = false;
+    }
+    return result;
   }
 }

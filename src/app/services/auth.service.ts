@@ -3,10 +3,12 @@ import {
   Auth,
   onAuthStateChanged,
   signInWithRedirect,
+  signOut,
   user,
 } from '@angular/fire/auth';
-import { Firestore, Unsubscribe } from '@angular/fire/firestore';
+import { Unsubscribe } from '@angular/fire/firestore';
 import { Functions, httpsCallable } from '@angular/fire/functions';
+import { Router } from '@angular/router';
 import { GoogleAuthProvider, User } from 'firebase/auth';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { CLOUD_FNS } from 'src/app/constants';
@@ -17,7 +19,7 @@ import { Role } from 'src/app/types/user';
 })
 export class AuthService implements OnDestroy {
   private auth = inject(Auth);
-  private db = inject(Firestore);
+  private router = inject(Router);
   private functions = inject(Functions);
   private provider = new GoogleAuthProvider();
 
@@ -54,12 +56,21 @@ export class AuthService implements OnDestroy {
       this.loading.next(false);
       return;
     }
-    await this.setClaims(); // set claims on cloud function
-    const token = await user.getIdTokenResult(true);
+    let token = await user.getIdTokenResult(true);
+    if (!token.claims['admin'] && !token.claims['student']) {
+      // set and fetch claims for new user
+      await this.setClaims({ uid: this.uid });
+      token = await user.getIdTokenResult(true);
+    }
     if (token.claims['admin']) this.role.next(Role.ADMIN);
     if (token.claims['student']) this.role.next(Role.STUDENT);
 
     this.loading.next(false);
+    if (!token.claims['admin'] && !token.claims['student']) {
+      // invalid claim, logout user
+      await signOut(this.auth);
+      this.router.navigateByUrl('/login');
+    }
   }
 
   async signIn() {

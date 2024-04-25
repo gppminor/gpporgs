@@ -39,6 +39,15 @@ export const onCreate = beforeUserCreated(async (event) => {
     warn('user not authorized, or already registered');
     throw new HttpsError('not-found', 'User not authorized');
   }
+
+  // clean up stale docs of same email
+  info('cleaning up stale docs');
+  const snapshot = await getFirestore()
+    .collection(COL_USERS)
+    .where('email', '==', email)
+    .get();
+  snapshot.forEach((snap) => snap.ref.delete());
+
   // create user from admin provided attributes
   const ref = getFirestore().collection(COL_USERS).doc(uid);
   await ref.set({
@@ -48,8 +57,6 @@ export const onCreate = beforeUserCreated(async (event) => {
     accessCount: 0,
     ...authorized.data(),
   });
-  // clean up document
-  await getFirestore().collection(COL_USERS).doc(email).delete();
 
   info('user created successfully');
 });
@@ -85,13 +92,14 @@ export const onSignIn = beforeUserSignedIn(async (event) => {
 // Update user claims
 export const setClaims = onCall(async (request) => {
   const uid = request.auth?.uid;
+  const targetUser = request.data.uid;
 
-  info(`setting custom claims for ${uid}`);
+  info('setting custom claims for ', uid);
 
   try {
-    if (!uid) throw new Error('invalid uid');
+    if (!uid || !targetUser) throw new Error('invalid uid');
 
-    const ref = getFirestore().collection(COL_USERS).doc(uid);
+    const ref = getFirestore().collection(COL_USERS).doc(targetUser);
     const snapshot = await ref.get();
     if (!snapshot.exists) throw new Error('user does not exist.');
 
@@ -102,9 +110,9 @@ export const setClaims = onCall(async (request) => {
     } else if (data && data.role == ROLE_STUDENT) {
       claims = { student: true };
     }
-    await getAuth().setCustomUserClaims(uid, claims);
+    await getAuth().setCustomUserClaims(targetUser, claims);
 
-    info(`custom claims set successfully with role ${data?.role}`);
+    info('custom claims set successfully with role ', data?.role);
   } catch (e) {
     error('set claims failed', e);
   }

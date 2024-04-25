@@ -1,8 +1,8 @@
 export const formatTime = (time: number): string => {
+  if (!time) return '-';
   const now = Date.now();
   const date = new Date(time);
   const days = (now - time) / (1000 * 3600 * 24);
-  if (days == 0) return '-';
   if (days <= 1) return `Today ${timeString(date)}`;
   if (days <= 2) return `Yesterday ${timeString(date)}`;
   if (days <= 7) return 'This week';
