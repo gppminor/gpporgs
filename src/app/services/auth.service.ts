@@ -6,12 +6,18 @@ import {
   signOut,
   user,
 } from '@angular/fire/auth';
-import { Unsubscribe } from '@angular/fire/firestore';
+import {
+  Firestore,
+  Unsubscribe,
+  doc,
+  increment,
+  updateDoc,
+} from '@angular/fire/firestore';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 import { Router } from '@angular/router';
 import { GoogleAuthProvider, User } from 'firebase/auth';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { CLOUD_FNS } from 'src/app/constants';
+import { CLOUD_FNS, COLLECTIONS } from 'src/app/constants';
 import { Role } from 'src/app/types/user';
 
 @Injectable({
@@ -19,6 +25,7 @@ import { Role } from 'src/app/types/user';
 })
 export class AuthService implements OnDestroy {
   private auth = inject(Auth);
+  private db = inject(Firestore);
   private router = inject(Router);
   private functions = inject(Functions);
   private provider = new GoogleAuthProvider();
@@ -70,6 +77,12 @@ export class AuthService implements OnDestroy {
       // invalid claim, logout user
       await signOut(this.auth);
       this.router.navigateByUrl('/login');
+    }
+
+    if (this.uid) {
+      // update last access
+      const ref = doc(this.db, COLLECTIONS.USERS, this.uid);
+      updateDoc(ref, { lastAccessAt: Date.now(), accessCount: increment(1) });
     }
   }
 
