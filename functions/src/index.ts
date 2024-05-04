@@ -3,11 +3,7 @@ import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { error, info, warn } from 'firebase-functions/logger';
 import { onCall } from 'firebase-functions/v2/https';
-import {
-  HttpsError,
-  beforeUserCreated,
-  beforeUserSignedIn,
-} from 'firebase-functions/v2/identity';
+import { HttpsError, beforeUserCreated } from 'firebase-functions/v2/identity';
 
 initializeApp();
 const DOMAIN = '@berkeley.edu';
@@ -47,7 +43,7 @@ export const onCreate = beforeUserCreated(async (event) => {
     .collection(COL_USERS)
     .where('email', '==', email)
     .get();
-  snapshot.forEach((snap) => snap.ref.delete());
+  snapshot.forEach((snapshot) => snapshot.ref.delete());
 
   // create user from admin provided attributes
   const ref = getFirestore().collection(COL_USERS).doc(uid);
@@ -60,34 +56,6 @@ export const onCreate = beforeUserCreated(async (event) => {
   });
 
   info('user created successfully');
-});
-
-// Update access info
-export const onSignIn = beforeUserSignedIn(async (event) => {
-  const email = event.data.email;
-  const uid = event.data.uid;
-
-  info(`signing in user uid:${uid}, email:${email}`);
-
-  if (!email || !uid) {
-    error('invalid email or uid');
-    throw new HttpsError('invalid-argument', 'Invalid email or uid');
-  }
-
-  const ref = getFirestore().collection(COL_USERS).doc(uid);
-  const snapshot = await ref.get();
-  if (!snapshot.exists) {
-    error('user does not exist.');
-    throw new HttpsError('not-found', 'User not found');
-  }
-
-  const data = snapshot.data();
-  ref.update({
-    accessCount: data?.accessCount + 1,
-    lastAccessAt: Date.now(),
-  });
-
-  info('user signed in successfully.');
 });
 
 // Update user claims
