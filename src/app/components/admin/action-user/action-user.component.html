@@ -1,11 +1,11 @@
-<h1 mat-dialog-title>{{titles.get(action)}}</h1>
+<span mat-dialog-title class='text-center'>{{titles.get(action)}}</span>
 <mat-dialog-content class="max-w-[400px]">
     @if (action == Action.ADD || action == Action.EDIT) {
     <form class="flex flex-col">
         <mat-form-field>
             <mat-label>Username</mat-label>
-            <input [formControl]="username" matInput placeholder="CalNet ID" (keypress)="userInput($event)"
-                (input)="userPaste()" required>
+            <input [formControl]="username" matInput placeholder="CalNet ID" (keypress)="onInput($event)"
+                (input)="onPaste()">
             <span matTextSuffix>{{domain}}</span>
         </mat-form-field>
         <mat-form-field>
@@ -36,7 +36,8 @@
         User</button>
     }
     @case (Action.EDIT) {
-    <button mat-flat-button color="primary" [disabled]="loading || !(username.dirty || role.dirty)"
+    <button mat-flat-button color="primary"
+        [disabled]="loading || !username.valid || !username.dirty || (username.value + domain) === user?.email"
         (click)="updateUser()">Update</button>
     }
     @case (Action.DELETE) {

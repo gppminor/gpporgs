@@ -33,8 +33,11 @@ export class ActionUserComponent {
   loading = false;
 
   allowed = /[a-zA-Z0-9_.]/;
-  username = this.fb.control<string | null>(null, Validators.required);
-  role = this.fb.control<Role>(Role.STUDENT, Validators.required);
+  username = this.fb.control<string | null>(null, [
+    Validators.minLength(2),
+    Validators.maxLength(19),
+  ]);
+  role = this.fb.control<Role>(Role.STUDENT);
 
   constructor() {
     this.action = this.data?.action;
@@ -45,11 +48,11 @@ export class ActionUserComponent {
     }
   }
 
-  userInput(event: KeyboardEvent) {
+  onInput(event: KeyboardEvent) {
     if (!this.allowed.test(event.key)) event.preventDefault();
   }
 
-  userPaste() {
+  onPaste() {
     this.loading = true;
     const pasted = this.username.value || '';
     let valid = '';

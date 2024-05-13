@@ -24,11 +24,11 @@ export const formatTime = (time: number): string => {
   const days = (now - time) / (1000 * 3600 * 24);
   if (days < 1) return `Today ${timeString(date)}`;
   if (days < 2) return `Yesterday ${timeString(date)}`;
-  if (days < 7) return `${daysOfWeek[date.getDay()]} ${timeString(date)}`;
+  if (days < 6) return `${daysOfWeek[date.getDay()]} ${timeString(date)}`;
   if (days < 14) return 'Last week';
-  if (days < 30) return 'This month';
+  if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
   if (days < 60) return 'Last month';
-  if (days < 365) return 'This year';
+  if (days < 365) return `${Math.floor(days / 30)} months ago`;
   if (days < 730) return 'Last year';
-  return 'More than a year ago';
+  return `${Math.floor(days / 365)} years ago`;
 };
