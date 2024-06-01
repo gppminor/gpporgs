@@ -91,7 +91,6 @@ export const setClaims = onCall(async (request) => {
 export const delUser = onCall(async (request) => {
   const uid = request.auth?.uid;
   const targetUser = request.data.uid;
-  console.log(request);
   info('deleting user of id:', targetUser);
   try {
     if (!uid) throw new Error('user not authenticated');
