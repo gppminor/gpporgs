@@ -19,9 +19,9 @@ $GPPOrgs-theme: mat.define-light-theme((color: (primary: $GPPOrgs-primary,
 // Include theme styles for core and each component used in your app.
 @include mat.all-component-themes($GPPOrgs-theme);
 
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 html,
 body {

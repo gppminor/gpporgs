@@ -1,6 +1,5 @@
 import { Location } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
+import { Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { UserService } from 'src/app/services/user.service';
@@ -13,10 +12,10 @@ import { formatTime } from 'src/app/utils';
   styleUrl: './reviews.component.scss',
 })
 export class ReviewsComponent implements OnInit, OnDestroy {
-  private fb = inject(FormBuilder);
   private location = inject(Location);
   private route = inject(ActivatedRoute);
   private fireService = inject(UserService);
+  @Input() data?: any;
 
   formatTime = formatTime;
 
@@ -26,9 +25,13 @@ export class ReviewsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
-    this.route.parent?.paramMap
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((map) => this.getReviews(map.get('id')));
+    if (this.data) {
+      this.getReviews(this.data.id);
+    } else {
+      this.route.parent?.paramMap
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((map) => this.getReviews(map.get('id')));
+    }
   }
 
   ngOnDestroy(): void {
@@ -51,8 +54,6 @@ export class ReviewsComponent implements OnInit, OnDestroy {
         this.loading = false;
       });
   }
-
-  private fetchAddress(id: string) {}
 
   goBack() {
     this.location.back();

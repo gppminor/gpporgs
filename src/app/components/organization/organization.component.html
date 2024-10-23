@@ -1,11 +1,11 @@
 <mat-card class="max-h-[calc(100vh-130px)]">
-    @if (loading.organization || loading.address || loading.contacts) {
+    @if (loading.organization || loading.address) {
     <mat-progress-bar mode="indeterminate" />
     } @else {
     <mat-card-content class="overflow-y-auto">
-        <form [formGroup]="formGroup" class="flex justify-content-between">
-            <div class="flex flex-column md:flex-row">
-                <div class="mr-1">
+        <form [formGroup]="formGroup">
+            <div class="flex flex-column md:flex-row justify-content-between">
+                <div formGroupName="organization" class="mr-1">
                     <mat-form-field class="w-full">
                         <mat-label>Name</mat-label>
                         <input matInput formControlName="name" required [readonly]="isReadOnly">
@@ -22,10 +22,30 @@
                         <mat-label>Website</mat-label>
                         <input matInput formControlName="website" [readonly]="isReadOnly">
                     </mat-form-field>
-                    <mat-form-field *ngIf="isReadOnly" class="w-full">
+                    @if (isReadOnly) {
+                    <mat-form-field class="w-full">
                         <mat-label>Region</mat-label>
-                        <input matInput value="{{fireService.regions.get(organization.region)}}" readonly required>
+                        <input matInput value="{{fireService.regions.get(data!.region)}}" readonly required>
                     </mat-form-field>
+                    } @else {
+                    <mat-form-field class="w-full">
+                        <mat-label>Region</mat-label>
+                        <mat-select formControlName="region" required>
+                            @for(region of fireService.regions.keys(); track region) {
+                            <mat-option [value]="region">{{fireService.regions.get(region)}}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+                    }
+                    @if (!isReadOnly) {
+                    <mat-form-field>
+                        <mat-label>Approved</mat-label>
+                        <mat-select formControlName="approved">
+                            <mat-option [value]="true">Yes</mat-option>
+                            <mat-option [value]="false">No</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                    }
                 </div>
                 <div formGroupName="address" class="ml-1">
                     <mat-form-field class="w-full">
@@ -44,48 +64,81 @@
                         <mat-label>Zip</mat-label>
                         <input matInput formControlName="zip" [readonly]="isReadOnly">
                     </mat-form-field>
-                    <mat-form-field *ngIf="isReadOnly" class="w-full">
+                    @if (isReadOnly) {
+                    <mat-form-field class="w-full">
                         <mat-label>Country</mat-label>
-                        <input matInput value="{{fireService.countries.get(organization.country)}}" readonly required>
+                        <input matInput value="{{fireService.countries.get(data!.country)}}" readonly required>
                     </mat-form-field>
+                    } @else {
+                    <mat-form-field class="w-full">
+                        <mat-label>Country</mat-label>
+                        <mat-select formControlName="country" required>
+                            @for(country of fireService.countries.keys(); track country) {
+                            <mat-option [value]="country">{{fireService.countries.get(country)}}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+                    }
+                </div>
+            </div>
+            <div formArrayName="contacts">
+                <h3>Contacts Info</h3>
+                <div class="overflow-y-auto">
+                    <mat-accordion>
+                        @for (id of data!.contacts; track id; let idx = $index) {
+                        @if (loading.contacts[idx]) {
+                        <mat-progress-bar class="mt-2" mode="indeterminate" />
+                        } @else if (!deletedContacts.has(idx)){
+                        <mat-expansion-panel formGroupName="{{idx}}" class="w-full">
+                            <mat-expansion-panel-header>
+                                <mat-panel-title>Contact {{idx + 1}}</mat-panel-title>
+                                <mat-panel-description>
+                                    open to see contact details
+                                </mat-panel-description>
+                            </mat-expansion-panel-header>
+                            <mat-form-field class="w-1/3 mr-2">
+                                <mat-label>Name</mat-label>
+                                <input matInput formControlName="name" [readonly]="isReadOnly">
+                            </mat-form-field>
+                            <mat-form-field class="w-1/3 mr-2">
+                                <mat-label>Role</mat-label>
+                                <input matInput formControlName="role" [readonly]="isReadOnly">
+                            </mat-form-field>
+                            <mat-form-field class="w-1/3 mr-2">
+                                <mat-label>Email</mat-label>
+                                <input matInput formControlName="email" [readonly]="isReadOnly">
+                            </mat-form-field>
+                            <mat-form-field class="w-1/3 mr-2">
+                                <mat-label>Phone</mat-label>
+                                <input matInput formControlName="phone" [readonly]="isReadOnly">
+                            </mat-form-field>
+                            @if (!isReadOnly) {
+                            <mat-action-row>
+                                <button mat-icon-button (click)="deleteContact(idx)" [disabled]="loading.contacts[idx]">
+                                    <mat-icon>delete</mat-icon>
+                                </button>
+                            </mat-action-row>
+                            }
+                        </mat-expansion-panel>
+                        }
+
+                        } @empty {
+                        <p>No contact provided.</p>
+                        }
+                    </mat-accordion>
                 </div>
             </div>
         </form>
-        <form [formGroup]="contacts">
-            <h3>Contacts Info</h3>
-            <div class="overflow-y-auto">
-                <mat-accordion>
-                    @for (id of contactIds; track id; let idx = $index) {
-                    <mat-expansion-panel formGroupName="{{id}}" class="w-full">
-                        <mat-expansion-panel-header>
-                            <mat-panel-title>Contact {{idx + 1}}</mat-panel-title>
-                            <mat-panel-description>
-                                open to see contact details
-                            </mat-panel-description>
-                        </mat-expansion-panel-header>
-                        <mat-form-field class="w-1/3 mr-2">
-                            <mat-label>Name</mat-label>
-                            <input matInput formControlName="name" [readonly]="isReadOnly">
-                        </mat-form-field>
-                        <mat-form-field class="w-1/3 mr-2">
-                            <mat-label>Role</mat-label>
-                            <input matInput formControlName="role" [readonly]="isReadOnly">
-                        </mat-form-field>
-                        <mat-form-field class="w-1/3 mr-2">
-                            <mat-label>Email</mat-label>
-                            <input matInput formControlName="email" [readonly]="isReadOnly">
-                        </mat-form-field>
-                        <mat-form-field class="w-1/3 mr-2">
-                            <mat-label>Phone</mat-label>
-                            <input matInput formControlName="phone" [readonly]="isReadOnly">
-                        </mat-form-field>
-                    </mat-expansion-panel>
-                    } @empty {
-                    <p>No contact provided.</p>
-                    }
-                </mat-accordion>
-            </div>
-        </form>
+
     </mat-card-content>
+    }
+    @if (action === Action.EDIT) {
+    <mat-card-footer class="flex justify-center gap-4">
+        <button mat-flat-button class="shadow-1 mb-2" color="primary" [disabled]="!canSave" (click)="save()">
+            @if(processing.organization || processing.address || processing.contacts) {<mat-spinner diameter="20" />}
+            @else{Save}
+        </button>
+        <button mat-flat-button class="shadow-1 mb-2" (click)="close.emit()">Close</button>
+    </mat-card-footer>
     }
 </mat-card>

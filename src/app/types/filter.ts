@@ -1,5 +1,6 @@
 export class Filter {
-    name: string = '';
-    areas: string[] = [];
-    sectors: string[] = [];
+  initialized = false;
+  name: string = '';
+  areas: string[] = [];
+  sectors: string[] = [];
 }

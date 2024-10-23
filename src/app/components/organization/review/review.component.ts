@@ -1,11 +1,14 @@
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, inject, Input, OnInit } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { MatChipInputEvent } from '@angular/material/chips';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { UserService } from 'src/app/services/user.service';
 import { Address } from 'src/app/types/address';
+import { Action } from 'src/app/types/enums';
 import { Review } from 'src/app/types/review';
+import { valueChanged } from 'src/app/utils';
 
 @Component({
   selector: 'app-review',
@@ -15,20 +18,41 @@ import { Review } from 'src/app/types/review';
 export class ReviewComponent implements OnInit {
   private fb = inject(FormBuilder);
   fireService = inject(UserService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   @Input() data!: any;
+  @Input() action?: Action;
 
+  Action = Action;
   formGroup = this.fb.group({});
   isLoading = false;
-  isReadOnly = true;
+  isReadOnly: boolean = true;
+  canSave = false;
   readonly separatorKeysCodes = [ENTER, COMMA] as const;
 
+  private original = {};
   // For auto-unsubscribe
   private destroy$ = new Subject<void>();
+
+  constructor() {
+    // this.isReadOnly = !this.router.url.startsWith('/admin/');
+  }
 
   ngOnInit(): void {
     this.initControls();
     this.fetchAddress();
+    this.formGroup.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((value) => {
+        if (this.isLoading) return;
+        this.canSave = !valueChanged(value, this.original);
+      });
+    // this.isReadOnly = !this.router.url.startsWith('/admin/');
+    this.isReadOnly = !this.route.snapshot.pathFromRoot
+      .map((path) => path.url.map((seg) => seg.path).join('/'))
+      .join('/')
+      .startsWith('/admin');
   }
 
   ngOnDestroy(): void {
@@ -40,6 +64,7 @@ export class ReviewComponent implements OnInit {
     for (const key of Object.keys(new Review())) {
       this.formGroup.addControl(key, this.fb.control(this.data[key] || '-'));
     }
+    this.original = JSON.parse(JSON.stringify(this.formGroup.value));
   }
 
   fetchAddress() {
@@ -54,6 +79,7 @@ export class ReviewComponent implements OnInit {
           controls[key] = result[key] || '-';
         }
         this.formGroup.addControl('address', this.fb.group(controls));
+        this.original = JSON.parse(JSON.stringify(this.formGroup.value));
         this.isLoading = false;
       });
   }

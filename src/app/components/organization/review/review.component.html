@@ -1,6 +1,9 @@
-<form [formGroup]="formGroup" class="w-full max-h-[calc(100vh-240px)] overflow-y-auto">
+<form [formGroup]="formGroup" class="w-full max-h-[calc(100vh-300px)] overflow-y-auto">
     <!-- Address -->
-    <div *ngIf="!isLoading" formGroupName="address" class="ml-1">
+    @if (isLoading) {
+    <mat-progress-bar mode="indeterminate" />
+    } @else {
+    <div formGroupName="address" class="ml-1">
         <mat-form-field class="w-full">
             <mat-label>Street</mat-label>
             <input matInput formControlName="street" [readonly]="isReadOnly">
@@ -17,22 +20,37 @@
             <mat-label>Zip</mat-label>
             <input matInput formControlName="zip" [readonly]="isReadOnly">
         </mat-form-field>
+        @if (isReadOnly) {
         <mat-form-field class="w-full">
             <mat-label>Country</mat-label>
-            @if (isReadOnly){
             <input matInput value="{{getCountry()}}" readonly required>
-            } @else { <!-- TODO -->}
         </mat-form-field>
+        }
+        <!-- @else { -->
+        <!-- <mat-form-field class="w-full">
+            <mat-label>Country</mat-label>
+            <mat-select formControlName="country">
+                @for(entry of fireService.countries.entries(); track entry) {
+                <mat-option [value]="entry[0]">{{entry[1]}}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field> -->
+        <!-- } -->
     </div>
+    }
     <!-- Region -->
-    <mat-form-field class="w-full">
+    <!-- <mat-form-field class="w-full">
         <mat-label>Region</mat-label>
         @if (isReadOnly) {
-        <input matInput value="{{getRegion()}}" readonly>
-        } @else { <!-- TODO --> }
-    </mat-form-field>
+        <input matInput formControlName="region" value="{{getRegion()}}" readonly>
+        } @else { <mat-select formControlName="region">
+            @for(entry of fireService.regions; track entry) {
+            <mat-option [value]="entry[0]">{{entry[1]}}</mat-option>
+            }
+        </mat-select> }
+    </mat-form-field> -->
     <!-- Language -->
-    <mat-form-field class="w-full">
+    <!-- <mat-form-field class="w-full">
         <mat-label>Languages</mat-label>
         @if (isReadOnly){
         <input matInput value="{{getLanguages().join(', ')}}" readonly>
@@ -48,26 +66,23 @@
                 [matChipInputAddOnBlur]="true" (matChipInputTokenEnd)="addLanguage($event)" placeholder="Add language">
         </mat-chip-grid>
         }
-    </mat-form-field>
+    </mat-form-field> -->
     <!-- Difficulties -->
     <mat-form-field class="w-full">
         <mat-label>Did you experience any language difficulties?</mat-label>
         <textarea matInput formControlName="difficulties" [readonly]="isReadOnly" cdkTextareaAutosize></textarea>
     </mat-form-field>
-    <!-- Type -->
-    <mat-form-field class="w-full">
-        <mat-label>Type of Organization</mat-label>
-        @if (isReadOnly) {
-        <input matInput value="{{getType()}}" readonly>
-        } @else { <!-- TODO --> }
-    </mat-form-field>
     <!-- Sectors -->
-    <mat-form-field class="w-full">
-        <mat-label>Sectors of Organization</mat-label>
+    <!-- <mat-form-field class="w-full">
+        <mat-label>Sectors</mat-label>
         @if (isReadOnly) {
         <input matInput value="{{getSectors()}}" readonly>
-        } @else { <!-- TODO -->}
-    </mat-form-field>
+        } @else { <mat-select formControlName="sectors">
+            @for(entry of fireService.sectors; track entry) {
+            <mat-option [value]="entry[0]">{{entry[1]}}</mat-option>
+            }
+        </mat-select>}
+    </mat-form-field> -->
     <!-- Cost, Stipend, Duration -->
     <mat-form-field class="mr-2">
         <mat-label>Cost of PE</mat-label>
@@ -100,3 +115,11 @@
     </mat-form-field>
     <!-- Safety, Responsiveness, Characteristics -->
 </form>
+@if (!isReadOnly) {
+<mat-action-row class="flex flex-row items-center justify-center">
+    <button mat-flat-button color="primary" [disabled]="!canSave">Save</button>
+    <button mat-icon-button>
+        <mat-icon>delete</mat-icon>
+    </button>
+</mat-action-row>
+}

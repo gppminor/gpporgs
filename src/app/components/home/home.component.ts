@@ -15,7 +15,6 @@ import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { UserService } from 'src/app/services/user.service';
 import { Area } from 'src/app/types/enums';
-import { Filter } from 'src/app/types/filter';
 import { Organization } from 'src/app/types/organization';
 
 @Component({
@@ -39,10 +38,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   areas = [Area.DOMESTIC, Area.INTERNATIONAL];
   sectors = <any>[];
 
-  nameControl = this.fb.control('');
+  nameControl = this.fb.control(this.userService.filterValues.value.name);
   areaControls: FormGroup;
   sectorControls: FormGroup;
-  filterValues = new Filter();
 
   isAllSectorsChecked = true;
   loading$ = this.userService.loading$;
@@ -59,17 +57,25 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.userService.organizations$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((orgs) => {
-        this.dataSource.data = orgs;
-      });
+    // this.userService.organizations$
+    //   .pipe(takeUntil(this.destroy$))
+    //   .subscribe((orgs) => {
+    //     this.dataSource.data = orgs;
+    //   });
   }
 
   ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
     this.dataSource.filterPredicate = this.applyFilter;
+    this.userService.organizations$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((orgs) => {
+        this.dataSource.data = orgs;
+      });
+    this.userService.filterValues
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((filter) => (this.dataSource.filter = JSON.stringify(filter)));
   }
 
   ngOnDestroy(): void {
@@ -78,19 +84,35 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   initFilterControls() {
+    const filter = this.userService.filterValues.getValue();
+
     const _areaControls: any = {};
+    const areas = [];
     for (const area of this.areas) {
-      _areaControls[area] = true;
-      this.filterValues.areas.push(area);
+      _areaControls[area] = filter.initialized
+        ? filter.areas.includes(area)
+        : true;
+      areas.push(area);
     }
     this.areaControls = this.fb.group(_areaControls);
     const _sectorControls: any = {};
+    const sectors = [];
     for (const [key, value] of this.userService.sectors.entries()) {
-      _sectorControls[key] = true;
+      _sectorControls[key] = filter.initialized
+        ? filter.sectors.includes(key)
+        : true;
       this.sectors.push({ key, value });
-      this.filterValues.sectors.push(key);
+      sectors.push(key);
     }
+    if (!filter.initialized)
+      this.userService.filterValues.next({
+        ...this.userService.filterValues.value,
+        areas,
+        sectors,
+        initialized: true,
+      });
     this.sectorControls = this.fb.group(_sectorControls);
+
     this.ready = true;
     this.registerSubscriptions();
   }
@@ -130,8 +152,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.nameControl.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe((name) => {
-        this.filterValues.name = name?.trim().toLowerCase() || '';
-        this.dataSource.filter = JSON.stringify(this.filterValues);
+        this.userService.filterValues.next({
+          ...this.userService.filterValues.value,
+          name: name?.trim().toLowerCase() || '',
+        });
       });
 
     this.areaControls.valueChanges
@@ -141,8 +165,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         Object.keys(event).forEach((key) => {
           if (event[key]) _areas.push(key);
         });
-        this.filterValues.areas = _areas;
-        this.dataSource.filter = JSON.stringify(this.filterValues);
+        this.userService.filterValues.next({
+          ...this.userService.filterValues.value,
+          areas: _areas,
+        });
       });
 
     this.sectorControls.valueChanges
@@ -152,8 +178,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         Object.keys(event).forEach((key) => {
           if (event[key]) _sectors.push(key);
         });
-        this.filterValues.sectors = _sectors;
-        this.dataSource.filter = JSON.stringify(this.filterValues);
+        this.userService.filterValues.next({
+          ...this.userService.filterValues.value,
+          sectors: _sectors,
+        });
         this.updateAllSectorsChecked();
       });
   }

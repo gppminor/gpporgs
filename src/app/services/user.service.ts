@@ -7,11 +7,11 @@ import {
   docData,
   orderBy,
   query,
-  updateDoc,
   where,
 } from '@angular/fire/firestore';
 import { BehaviorSubject, Observable, take } from 'rxjs';
 import { COLLECTIONS } from 'src/app/constants';
+import { Filter } from '../types/filter';
 
 @Injectable({
   providedIn: 'root',
@@ -32,6 +32,8 @@ export class UserService {
 
   private organizations = new BehaviorSubject<any[]>([]);
   organizations$ = this.organizations.asObservable();
+
+  filterValues = new BehaviorSubject(new Filter());
 
   constructor() {
     this.loading.next(true);
@@ -72,11 +74,6 @@ export class UserService {
     return docData(doc(this.db, COLLECTIONS.ORGANIZATIONS, id));
   }
 
-  async updateOrganization(id: string, partial: any): Promise<void> {
-    const docRef = doc(this.db, COLLECTIONS.ORGANIZATIONS, id);
-    await updateDoc(docRef, partial);
-  }
-
   getAddress(id: string): Observable<any> {
     const docRef = doc(this.db, COLLECTIONS.ADDRESSES, id);
     return docData(docRef);
@@ -92,5 +89,10 @@ export class UserService {
     const condition = where('organization', '==', organizationId);
     const col = collection(this.db, COLLECTIONS.REVIEWS);
     return collectionData(query(col, condition, order));
+  }
+
+  getReview(id: string): Observable<any> {
+    const docRef = doc(this.db, COLLECTIONS.REVIEWS, id);
+    return docData(docRef, { idField: 'id' });
   }
 }

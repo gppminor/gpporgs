@@ -35,6 +35,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { environment } from 'src/environments/environment';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { ActionOrganizationComponent } from './components/admin/action-organization/action-organization.component';
 import { ActionUserComponent } from './components/admin/action-user/action-user.component';
 import { AdminOrganizationsComponent } from './components/admin/admin-organizations/admin-organizations.component';
 import { AdminUsersComponent } from './components/admin/admin-users/admin-users.component';
@@ -65,6 +66,7 @@ import { ToolbarComponent } from './components/toolbar/toolbar.component';
     ActionUserComponent,
     DeleteComponent,
     DetailComponent,
+    ActionOrganizationComponent,
   ],
   imports: [
     FormsModule,

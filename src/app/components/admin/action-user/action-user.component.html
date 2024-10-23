@@ -37,7 +37,7 @@
     }
     @case (Action.EDIT) {
     <button mat-flat-button color="primary"
-        [disabled]="loading || !username.valid || !username.dirty || (username.value + domain) === user?.email"
+        [disabled]="loading || !username.valid || !username.dirty && !role.dirty || (username.value + domain) === user?.email && role.value === user?.role"
         (click)="updateUser()">Update</button>
     }
     @case (Action.DELETE) {

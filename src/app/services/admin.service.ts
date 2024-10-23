@@ -5,6 +5,7 @@ import {
   collection,
   collectionCount,
   collectionData,
+  deleteDoc,
   doc,
   query,
   setDoc,
@@ -101,8 +102,16 @@ export class AdminService {
       });
   }
 
-  // TODO:
-  private fetchOrganizations() {}
+  private fetchOrganizations() {
+    const id = { idField: 'id' };
+    const col = collection(this.db, COLLECTIONS.ORGANIZATIONS);
+    collectionData(query(col), id)
+      .pipe(take(1))
+      .subscribe((data) => {
+        this.organizations.next(data as Organization[]);
+        this.loading.next(false);
+      });
+  }
 
   async addUser(email: string, role: Role): Promise<boolean> {
     let result = true;
@@ -150,5 +159,30 @@ export class AdminService {
       result = false;
     }
     return result;
+  }
+
+  updateOrganization(id: string, data: any): Promise<void> {
+    const ref = doc(this.db, COLLECTIONS.ORGANIZATIONS, id);
+    return updateDoc(ref, data);
+  }
+
+  deleteOrganization(id: string): Promise<void> {
+    const ref = doc(this.db, COLLECTIONS.ORGANIZATIONS, id);
+    return deleteDoc(ref);
+  }
+
+  updateAddress(id: string, data: any): Promise<void> {
+    const ref = doc(this.db, COLLECTIONS.ADDRESSES, id);
+    return updateDoc(ref, data as any);
+  }
+
+  updateContact(id: string, data: any): Promise<void> {
+    const ref = doc(this.db, COLLECTIONS.CONTACTS, id);
+    return updateDoc(ref, data as any);
+  }
+
+  deleteContact(id: string): Promise<void> {
+    const ref = doc(this.db, COLLECTIONS.CONTACTS, id);
+    return deleteDoc(ref);
   }
 }

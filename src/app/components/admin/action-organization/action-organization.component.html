@@ -1,0 +1,15 @@
+<div class="flex flex-col pt-2 max-w w-full">
+    <div class="flex flex-row justify-start items-start gap-2 px-4">
+        <button mat-flat-button class="shadow-1 mb-2 bg-gray" [disabled]="isDetailView" (click)="isDetailView = true">
+            Organization
+        </button>
+        <button mat-flat-button class="shadow-1 mb-2 bg-gray" [disabled]="!isDetailView" (click)="isDetailView = false">
+            Reviews
+        </button>
+    </div>
+    @if (isDetailView) {
+    <app-organization [action]="action" [data]="data.data" (close)="close()" />
+    } @else {
+    <app-reviews [data]="data.data" />
+    }
+</div>

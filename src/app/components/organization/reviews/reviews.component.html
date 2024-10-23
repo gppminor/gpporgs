@@ -1,8 +1,8 @@
-<mat-card class="max-h-[calc(100vh-130px)]">
+<mat-card class="max-h-[calc(100vh-130px)] w-full">
     @if (loading) {
     <mat-progress-bar mode="indeterminate" />
     } @else {
-    <mat-card-content class="overflow-hidden pb-4">
+    <mat-card-content class="pb-4">
         <mat-accordion>
             @for (review of reviews; track review.id; let idx = $index) {
             <mat-expansion-panel>
