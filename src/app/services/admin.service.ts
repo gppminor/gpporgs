@@ -166,14 +166,21 @@ export class AdminService {
     return updateDoc(ref, data);
   }
 
-  deleteOrganization(id: string): Promise<void> {
+  async deleteOrganization(id: string): Promise<void> {
     const ref = doc(this.db, COLLECTIONS.ORGANIZATIONS, id);
-    return deleteDoc(ref);
+    await deleteDoc(ref);
+    const orgs = this.organizations.getValue().filter((org) => org.id !== id);
+    this.organizations.next(orgs);
   }
 
   updateAddress(id: string, data: any): Promise<void> {
     const ref = doc(this.db, COLLECTIONS.ADDRESSES, id);
     return updateDoc(ref, data as any);
+  }
+
+  deleteAddress(id: string): Promise<void> {
+    const ref = doc(this.db, COLLECTIONS.ADDRESSES, id);
+    return deleteDoc(ref);
   }
 
   updateContact(id: string, data: any): Promise<void> {
@@ -183,6 +190,16 @@ export class AdminService {
 
   deleteContact(id: string): Promise<void> {
     const ref = doc(this.db, COLLECTIONS.CONTACTS, id);
+    return deleteDoc(ref);
+  }
+
+  updateReview(id: string, data: any): Promise<void> {
+    const ref = doc(this.db, COLLECTIONS.REVIEWS, id);
+    return updateDoc(ref, data as any);
+  }
+
+  deleteReview(id: string): Promise<void> {
+    const ref = doc(this.db, COLLECTIONS.REVIEWS, id);
     return deleteDoc(ref);
   }
 }

@@ -10,6 +10,6 @@
     @if (isDetailView) {
     <app-organization [action]="action" [data]="data.data" (close)="close()" />
     } @else {
-    <app-reviews [data]="data.data" />
+    <app-reviews [organization]="data.data.id" />
     }
 </div>

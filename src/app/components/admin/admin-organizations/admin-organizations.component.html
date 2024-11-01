@@ -44,10 +44,10 @@
                 <th mat-header-cell *matHeaderCellDef>Actions</th>
                 <td mat-cell *matCellDef="let organization">
                     <div class="flex flex-row">
-                        <button mat-icon-button (click)="editOrganization(organization)">
+                        <button mat-icon-button (click)="editOrganization(organization)" [disabled]="processing">
                             <mat-icon>edit</mat-icon>
                         </button>
-                        <button mat-icon-button (click)="deleteOrganization(organization)">
+                        <button mat-icon-button (click)="deleteOrganization(organization)" [disabled]="processing">
                             <mat-icon>delete</mat-icon>
                         </button>
                     </div>
@@ -59,4 +59,7 @@
     </div>
     <mat-paginator class="shadow-2 absolute bottom-0 w-full border-t" [pageSizeOptions]="[10, 25, 50]" [pageSize]="25"
         showFirstLastButtons />
+    @if(processing) {
+    <mat-progress-bar mode="indeterminate" />
+    }
 </div>

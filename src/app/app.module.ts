@@ -4,6 +4,7 @@ import { getAuth, provideAuth } from '@angular/fire/auth';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import { getFunctions, provideFunctions } from '@angular/fire/functions';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -49,6 +50,7 @@ import { OrganizationComponent } from './components/organization/organization.co
 import { ReviewComponent } from './components/organization/review/review.component';
 import { ReviewsComponent } from './components/organization/reviews/reviews.component';
 import { ToolbarComponent } from './components/toolbar/toolbar.component';
+import { ConfirmDeleteComponent } from './components/admin/confirm-delete/confirm-delete.component';
 
 @NgModule({
   declarations: [
@@ -67,6 +69,7 @@ import { ToolbarComponent } from './components/toolbar/toolbar.component';
     DeleteComponent,
     DetailComponent,
     ActionOrganizationComponent,
+    ConfirmDeleteComponent,
   ],
   imports: [
     FormsModule,
@@ -93,6 +96,7 @@ import { ToolbarComponent } from './components/toolbar/toolbar.component';
     MatExpansionModule,
     MatFormFieldModule,
     MatPaginatorModule,
+    MatAutocompleteModule,
     ReactiveFormsModule,
     MatProgressBarModule,
     BrowserAnimationsModule,

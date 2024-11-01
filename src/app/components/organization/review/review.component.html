@@ -1,125 +1,140 @@
 <form [formGroup]="formGroup" class="w-full max-h-[calc(100vh-300px)] overflow-y-auto">
     <!-- Address -->
-    @if (isLoading) {
+    @if (loading) {
     <mat-progress-bar mode="indeterminate" />
     } @else {
     <div formGroupName="address" class="ml-1">
         <mat-form-field class="w-full">
             <mat-label>Street</mat-label>
-            <input matInput formControlName="street" [readonly]="isReadOnly">
+            <input matInput formControlName="street" [readonly]="isReadOnly || processing">
         </mat-form-field>
         <mat-form-field class="w-full">
             <mat-label>City</mat-label>
-            <input matInput formControlName="city" [readonly]="isReadOnly">
+            <input matInput formControlName="city" [readonly]="isReadOnly || processing">
         </mat-form-field>
         <mat-form-field class="w-full">
             <mat-label>State</mat-label>
-            <input matInput formControlName="state" [readonly]="isReadOnly">
+            <input matInput formControlName="state" [readonly]="isReadOnly || processing">
         </mat-form-field>
         <mat-form-field class="w-full">
             <mat-label>Zip</mat-label>
-            <input matInput formControlName="zip" [readonly]="isReadOnly">
+            <input matInput formControlName="zip" [readonly]="isReadOnly || processing">
         </mat-form-field>
-        @if (isReadOnly) {
         <mat-form-field class="w-full">
             <mat-label>Country</mat-label>
+            @if (isReadOnly) {
             <input matInput value="{{getCountry()}}" readonly required>
-        </mat-form-field>
-        }
-        <!-- @else { -->
-        <!-- <mat-form-field class="w-full">
-            <mat-label>Country</mat-label>
+            } @else {
             <mat-select formControlName="country">
-                @for(entry of fireService.countries.entries(); track entry) {
-                <mat-option [value]="entry[0]">{{entry[1]}}</mat-option>
+                @for(code of fireService.countries.keys(); track code) {
+                <mat-option [value]="code">{{fireService.countries.get(code)}}</mat-option>
                 }
             </mat-select>
-        </mat-form-field> -->
-        <!-- } -->
+            }
+        </mat-form-field>
     </div>
     }
     <!-- Region -->
-    <!-- <mat-form-field class="w-full">
+    <mat-form-field class="w-full">
         <mat-label>Region</mat-label>
         @if (isReadOnly) {
         <input matInput formControlName="region" value="{{getRegion()}}" readonly>
-        } @else { <mat-select formControlName="region">
-            @for(entry of fireService.regions; track entry) {
-            <mat-option [value]="entry[0]">{{entry[1]}}</mat-option>
+        } @else {
+        <mat-select formControlName="region">
+            @for(key of fireService.regions.keys(); track key) {
+            <mat-option [value]="key">{{fireService.regions.get(key)}}</mat-option>
             }
-        </mat-select> }
-    </mat-form-field> -->
+        </mat-select>
+        }
+    </mat-form-field>
     <!-- Language -->
-    <!-- <mat-form-field class="w-full">
+    <mat-form-field class="w-full">
         <mat-label>Languages</mat-label>
         @if (isReadOnly){
         <input matInput value="{{getLanguages().join(', ')}}" readonly>
         } @else{
-        <mat-chip-grid #chipGrid>
-            @for (language of data.languages; track language;) {
-            <mat-chip-row>
-                {{language}}
+        <mat-chip-grid #chipGrid [disabled]="processing">
+            @for (code of selectedLangs$ | async; track code) {
+            <mat-chip-row (removed)="removeLanguage(code)">
+                {{fireService.languages.get(code)}}
                 <button matChipRemove><mat-icon>cancel</mat-icon></button>
             </mat-chip-row>
             }
-            <input [matChipInputFor]="chipGrid" [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-                [matChipInputAddOnBlur]="true" (matChipInputTokenEnd)="addLanguage($event)" placeholder="Add language">
         </mat-chip-grid>
+        <input [formControl]="langControl" [matChipInputFor]="chipGrid"
+            [matChipInputSeparatorKeyCodes]="separatorKeysCodes" [matAutocomplete]="auto" [matChipInputAddOnBlur]="true"
+            (matChipInputTokenEnd)="addLanguage($event)" placeholder="Add language" [readOnly]="processing">
         }
-    </mat-form-field> -->
+        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectLanguage($event)">
+            @for(code of filteredLangs | async; track code) {
+            <mat-option [value]="code">{{fireService.languages.get(code)}}</mat-option>
+            }
+        </mat-autocomplete>
+    </mat-form-field>
     <!-- Difficulties -->
     <mat-form-field class="w-full">
         <mat-label>Did you experience any language difficulties?</mat-label>
-        <textarea matInput formControlName="difficulties" [readonly]="isReadOnly" cdkTextareaAutosize></textarea>
+        <textarea matInput formControlName="difficulties" [readonly]="isReadOnly || processing"
+            cdkTextareaAutosize></textarea>
     </mat-form-field>
     <!-- Sectors -->
-    <!-- <mat-form-field class="w-full">
+    <mat-form-field class="w-full">
         <mat-label>Sectors</mat-label>
         @if (isReadOnly) {
-        <input matInput value="{{getSectors()}}" readonly>
-        } @else { <mat-select formControlName="sectors">
-            @for(entry of fireService.sectors; track entry) {
-            <mat-option [value]="entry[0]">{{entry[1]}}</mat-option>
+        <input matInput formControlName="sectors" value="{{getSectors()}}" readonly>
+        }
+        @else {
+        <mat-select formControlName="sectors" multiple>
+            @for(key of fireService.sectors.keys(); track key) {
+            <mat-option [value]="key">{{fireService.sectors.get(key)}}</mat-option>
             }
-        </mat-select>}
-    </mat-form-field> -->
+        </mat-select>
+        }
+    </mat-form-field>
     <!-- Cost, Stipend, Duration -->
     <mat-form-field class="mr-2">
         <mat-label>Cost of PE</mat-label>
-        <input matInput formControlName="cost" [readonly]="isReadOnly">
+        <input matInput formControlName="cost" [readonly]="isReadOnly || processing">
     </mat-form-field>
     <mat-form-field>
         <mat-label>Stipend paid by organization</mat-label>
-        <input matInput formControlName="stipend" [readonly]="isReadOnly">
+        <input matInput formControlName="stipend" [readonly]="isReadOnly || processing">
     </mat-form-field>
     <mat-form-field class="ml-2">
         <mat-label>Duration of PE</mat-label>
-        <input matInput formControlName="duration" [readonly]="isReadOnly">
+        <input matInput formControlName="duration" [readonly]="isReadOnly || processing">
     </mat-form-field>
     <!-- Work Done, Typical Day, Strengths/Weaknesses, Other comments -->
     <mat-form-field class="w-full">
         <mat-label>Please describe the work that you did with your organization.</mat-label>
-        <textarea matInput formControlName="workDone" [readonly]="isReadOnly" cdkTextareaAutosize></textarea>
+        <textarea matInput formControlName="workDone" [readonly]="isReadOnly || processing"
+            cdkTextareaAutosize></textarea>
     </mat-form-field>
     <mat-form-field class="w-full">
         <mat-label>What was a typical day like while on your PE?</mat-label>
-        <textarea matInput formControlName="typicalDay" [readonly]="isReadOnly" cdkTextareaAutosize></textarea>
+        <textarea matInput formControlName="typicalDay" [readonly]="isReadOnly || processing"
+            cdkTextareaAutosize></textarea>
     </mat-form-field>
     <mat-form-field class="w-full">
         <mat-label>What were the organization's strengths and weaknesses?</mat-label>
-        <textarea matInput formControlName="evaluation" [readonly]="isReadOnly" cdkTextareaAutosize></textarea>
+        <textarea matInput formControlName="evaluation" [readonly]="isReadOnly || processing"
+            cdkTextareaAutosize></textarea>
     </mat-form-field>
     <mat-form-field class="w-full">
         <mat-label>Other comments you want to add?</mat-label>
-        <textarea matInput formControlName="otherComments" [readonly]="isReadOnly" cdkTextareaAutosize></textarea>
+        <textarea matInput formControlName="otherComments" [readonly]="isReadOnly || processing"
+            cdkTextareaAutosize></textarea>
     </mat-form-field>
     <!-- Safety, Responsiveness, Characteristics -->
 </form>
 @if (!isReadOnly) {
 <mat-action-row class="flex flex-row items-center justify-center">
-    <button mat-flat-button color="primary" [disabled]="!canSave">Save</button>
-    <button mat-icon-button>
+    <button mat-flat-button color="primary" (click)="updateReview()" [disabled]="!canSave || processing">Save</button>
+    <button mat-icon-button (click)="deleteReview()" [disabled]="processing">
         <mat-icon>delete</mat-icon>
     </button>
 </mat-action-row>
+}
+@if (processing) {
+<mat-progress-bar mode="indeterminate" class="-mt-1" />
 }

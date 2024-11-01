@@ -1,0 +1,6 @@
+<span mat-dialog-title class='text-center'>{{data.title}}</span>
+<mat-dialog-content>{{data.message}}</mat-dialog-content>
+<mat-dialog-actions align="center">
+    <button mat-flat-button mat-dialog-close class="button-flat">Cancel</button>
+    <button mat-flat-button color="primary" (click)="dialogRef.close(true)">Confirm</button>
+</mat-dialog-actions>

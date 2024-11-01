@@ -15,18 +15,19 @@ export class ReviewsComponent implements OnInit, OnDestroy {
   private location = inject(Location);
   private route = inject(ActivatedRoute);
   private fireService = inject(UserService);
-  @Input() data?: any;
+  @Input() organization?: string;
 
   formatTime = formatTime;
 
   private organizationId: string;
-  reviews: Review[];
+  reviews: Review[] = [];
   loading = false;
+  processing = false;
   private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
-    if (this.data) {
-      this.getReviews(this.data.id);
+    if (this.organization) {
+      this.getReviews(this.organization);
     } else {
       this.route.parent?.paramMap
         .pipe(takeUntil(this.destroy$))
@@ -43,16 +44,18 @@ export class ReviewsComponent implements OnInit, OnDestroy {
     if (!id || id === this.organizationId) return;
     this.organizationId = id;
     this.loading = true;
-    this.reviews = [];
     this.fireService
       .getReviews(id)
       .pipe(takeUntil(this.destroy$))
       .subscribe((_reviews) => {
-        for (let _review of _reviews) {
-          this.reviews.push(_review);
-        }
+        this.reviews = _reviews;
         this.loading = false;
       });
+  }
+
+  onDelete(idx: number) {
+    if (idx >= this.reviews.length) return;
+    this.reviews.splice(idx, 1);
   }
 
   goBack() {

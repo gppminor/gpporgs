@@ -34,22 +34,18 @@ export const formatTime = (time: number): string => {
 };
 
 export const valueChanged = (o: any, c: any) => {
-  for (const key of Object.keys(c)) {
-    if (!(key in o)) return true;
-    if (c[key] instanceof Array) {
-      if (!(o[key] instanceof Array)) return true;
-      if (o[key].length !== c[key].length) return true;
-      for (let i = 0; i < o[key].length; i++) {
-        if (valueChanged(o[key][i], c[key][i])) return true;
-      }
-    } else if (c[key] instanceof Object) {
-      if (!(o[key] instanceof Object)) return true;
+  if (o != null && o != '' && typeof c != typeof o) return true;
+  else if (c instanceof Array) {
+    if (c.length !== o.length) return true;
+    o.sort();
+    c.sort();
+    for (let i = 0; i < c.length; i++)
+      if (valueChanged(o[i], c[i])) return true;
+  } else if (c instanceof Object) {
+    for (const key of Object.keys(c))
       if (valueChanged(o[key], c[key])) return true;
-    } else if (
-      (o[key] == null || o[key] == '') != (c[key] == null || c[key] == '')
-    )
-      return true;
-    else if (o[key] != null && o[key] != '' && o[key] !== c[key]) return true;
-  }
+  } else if ((c == null || c == '') != (o == null || o == '')) return true;
+  else if (o != null && o != '' && o != c) return true;
+
   return false;
 };

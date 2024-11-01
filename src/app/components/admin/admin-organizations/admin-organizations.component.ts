@@ -10,13 +10,13 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
-import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { AdminService } from 'src/app/services/admin.service';
 import { UserService } from 'src/app/services/user.service';
 import { Action } from 'src/app/types/enums';
 import { Organization } from 'src/app/types/organization';
 import { ActionOrganizationComponent } from '../action-organization/action-organization.component';
+import { ConfirmDeleteComponent } from '../confirm-delete/confirm-delete.component';
 
 @Component({
   selector: 'app-admin-organizations',
@@ -26,7 +26,6 @@ import { ActionOrganizationComponent } from '../action-organization/action-organ
 export class AdminOrganizationsComponent
   implements AfterViewInit, OnInit, OnDestroy
 {
-  private router = inject(Router);
   private dialog = inject(MatDialog);
   private adminService = inject(AdminService);
   readonly userService = inject(UserService);
@@ -39,6 +38,7 @@ export class AdminOrganizationsComponent
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
   private destroy$ = new Subject<void>();
+  processing = false;
 
   ngOnInit(): void {
     this.adminService.organizations$
@@ -70,5 +70,18 @@ export class AdminOrganizationsComponent
     });
   }
 
-  deleteOrganization(id: string) {}
+  async deleteOrganization(organization: any) {
+    const dialogRef = this.dialog.open(ConfirmDeleteComponent, {
+      data: {
+        title: 'Delete Organization',
+        message: `Are you sure you want to delete ${organization.name}?`,
+      },
+    });
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (!result || !organization.id) return;
+      this.processing = true;
+      await this.adminService.deleteOrganization(organization.id);
+      this.processing = false;
+    });
+  }
 }
