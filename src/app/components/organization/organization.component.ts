@@ -144,6 +144,11 @@ export class OrganizationComponent implements OnInit, OnDestroy {
       .subscribe((contacts) => this.initContactControls(contacts));
   }
 
+  getType() {
+    if (this.data?.type) return this.fireService.types.get(this.data.type);
+    return this.data?.otherType;
+  }
+
   contacts() {
     return this.formGroup.get('contacts') as FormArray;
   }

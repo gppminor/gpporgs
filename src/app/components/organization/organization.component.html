@@ -7,9 +7,29 @@
             <div class="flex flex-column md:flex-row justify-content-between">
                 <div formGroupName="organization" class="mr-1">
                     <mat-form-field class="w-full">
-                        <mat-label>Name</mat-label>
+                        <mat-label>Organization Name</mat-label>
                         <input matInput formControlName="name" required [readonly]="isReadOnly">
                     </mat-form-field>
+                    <mat-form-field class="w-full">
+                        <mat-label>Description</mat-label>
+                        <textarea matInput formControlName="description" [readonly]="isReadOnly"
+                            cdkTextareaAutosize></textarea>
+                    </mat-form-field>
+                    @if (isReadOnly) {
+                    <mat-form-field class="w-full">
+                        <mat-label>Type</mat-label>
+                        <input matInput value="{{getType()}}" readonly>
+                    </mat-form-field>
+                    } @else {
+                    <mat-form-field class="w-full">
+                        <mat-label>Types</mat-label>
+                        <mat-select formControlName="type">
+                            @for(key of fireService.types.keys(); track key) {
+                            <mat-option [value]="key">{{fireService.types.get(key)}}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+                    }
                     <mat-form-field class="w-full">
                         <mat-label>Email</mat-label>
                         <input matInput formControlName="email" [readonly]="isReadOnly">
