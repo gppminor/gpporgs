@@ -7,9 +7,10 @@ import {
   Output,
   inject,
 } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, combineLatest, takeUntil } from 'rxjs';
+import { MAX_NUM_ORG_CONTACTS } from 'src/app/constants';
 import { AdminService } from 'src/app/services/admin.service';
 import { UserService } from 'src/app/services/user.service';
 import { Address } from 'src/app/types/address';
@@ -57,22 +58,29 @@ export class OrganizationComponent implements OnInit, OnDestroy {
     contacts: false,
   };
 
-  deletedContacts = new Set<number>();
+  deletedContacts = new Set<string>();
 
   // For auto-unsubscribe
   private destroy$ = new Subject<void>();
 
+  MAX_CONTACTS = MAX_NUM_ORG_CONTACTS;
+
   ngOnInit(): void {
     const orgId = this.route.snapshot.paramMap.get('id');
-    if (this.data) {
+    if (orgId) {
+      this.fetchOrganization(orgId);
+    } else if (this.data) {
       this.initOrgControls(this.data);
       this.fetchAddress(this.data.address);
       this.fetchContacts(this.data.contacts);
       this.loading.organization = false;
-    } else if (orgId) {
-      this.fetchOrganization(orgId);
     } else {
       this.data = new Organization();
+      this.original = { organization: { ...this.data } };
+      this.original.address = new Address();
+      this.original.contacts = [];
+      this.initOrgControls(this.original.organization);
+      this.initAddressControls(this.original.address);
       this.loading.organization = false;
       this.loading.address = false;
     }
@@ -136,6 +144,10 @@ export class OrganizationComponent implements OnInit, OnDestroy {
       .subscribe((contacts) => this.initContactControls(contacts));
   }
 
+  contacts() {
+    return this.formGroup.get('contacts') as FormArray;
+  }
+
   initOrgControls(data: Organization) {
     for (const [key, value] of Object.entries(new Organization())) {
       if (typeof value == 'string' || typeof value == 'boolean') {
@@ -163,82 +175,94 @@ export class OrganizationComponent implements OnInit, OnDestroy {
 
   initContactControls(data: Contact[]) {
     for (let i = 0; i < data.length; i++) {
-      if (!data[i]) {
-        this.deletedContacts.add(i);
-        continue;
-      }
-      this.formGroup.controls.contacts.push(this.fb.group({}));
-      for (const [key, val] of Object.entries(new Contact())) {
-        this.formGroup.controls.contacts.controls[i].addControl(
-          key,
-          this.fb.control((data[i] as any)[key] || val)
-        );
-      }
+      if (!data[i]) continue;
+      this.addContactControl(data[i]);
     }
     this.original.contacts = [...data];
     this.loading.contacts.fill(false);
   }
 
-  save() {
-    this.saveOrganization();
-    this.saveAddress();
-    this.saveContacts();
+  private addContactControl(data: any) {
+    const fg = this.fb.group({});
+    for (const [key, val] of Object.entries(new Contact())) {
+      fg.addControl(key, this.fb.control(data[key] || val));
+    }
+    this.formGroup.controls.contacts.push(fg);
   }
 
-  private async saveOrganization() {
-    const update: any = this.formGroup.controls.organization.value;
+  async save() {
+    const update = this.formGroup.controls.organization.value;
+    await this.saveAddress(update);
+    await this.saveContacts(update);
+    await this.saveOrganization(update);
+  }
+
+  private async saveOrganization(data: any) {
     this.processing.organization = true;
     this.canSave = false;
-    if (this.deletedContacts.size > 0) {
-      const contacts = [];
-      for (let idx = 0; idx < this.data!.contacts.length; idx++) {
-        if (!this.deletedContacts.has(idx))
-          contacts.push(this.data!.contacts[idx]);
+    if (valueChanged(this.original.organization, data)) {
+      let id = this.data!.id;
+      if (id) {
+        await this.adminService.updateOrganization(id, data);
+      } else {
+        data.createdAt = Date.now();
+        id = await this.adminService.addOrganization(data);
       }
-      update.contacts = contacts;
-    }
-    if (valueChanged(this.original.organization, update)) {
-      await this.adminService.updateOrganization(this.data!.id, update);
-      this.original.organization = { ...this.original.organization, ...update };
+      this.original.organization = { ...this.original.organization, ...data };
     }
     this.processing.organization = false;
   }
 
-  private async saveAddress() {
-    const update = this.formGroup.controls.address.value;
+  private async saveAddress(org: any) {
+    const update: any = this.formGroup.controls.address.value;
     this.processing.address = true;
     this.canSave = false;
     if (valueChanged(this.original.address, update)) {
-      await this.adminService.updateAddress(this.data!.address, update);
+      let id = this.data!.address;
+      if (id) await this.adminService.updateAddress(id, update);
+      else id = await this.adminService.addAddress(update);
+      org.address = id;
+      org.country = update.country;
       this.original.address = { ...this.original.address, ...update };
     }
     this.processing.address = false;
   }
 
-  private async saveContacts() {
+  private async saveContacts(org: any) {
     const update = this.formGroup.controls.contacts.value;
     this.processing.contacts = true;
     this.canSave = false;
-    for (let idx = 0; idx < this.data!.contacts.length; idx++) {
-      if (this.deletedContacts.has(idx)) {
-        await this.adminService.deleteContact(this.data!.contacts[idx]);
-        this.deletedContacts.delete(idx);
-        this.data!.contacts.splice(idx);
-      } else if (valueChanged(this.original.contacts[idx], update[idx])) {
-        await this.adminService.updateContact(
-          this.data!.contacts[idx],
-          update[idx]
-        );
+    org.contacts = [];
+    for (const contact of this.contacts().value) {
+      let id = contact.id;
+      if (id) {
+        delete contact.id;
+        await this.adminService.updateContact(id, contact);
+        org.contacts.push(id);
+      } else {
+        id = await this.adminService.addContact(contact);
+        org.contacts.push(id);
       }
+    }
+    // handle deleted contacts
+    for (const contact of this.data?.contacts || []) {
+      if (!org.contacts.includes(contact))
+        await this.adminService.deleteContact(contact);
     }
     this.original.contacts = [...update];
     this.processing.contacts = false;
   }
 
+  addContact($event: Event) {
+    $event.preventDefault();
+    this.loading.contacts.push(false);
+    this.addContactControl(new Contact());
+    this.canSave = true;
+  }
+
   deleteContact(idx: number) {
     this.formGroup.controls.contacts.removeAt(idx);
     this.loading.contacts.splice(idx, 1);
-    this.deletedContacts.add(idx);
     this.canSave = true;
   }
 }

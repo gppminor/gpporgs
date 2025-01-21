@@ -61,7 +61,12 @@ export class AdminOrganizationsComponent
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
-  addOrganization() {}
+  addOrganization() {
+    this.dialog.open(ActionOrganizationComponent, {
+      disableClose: true,
+      data: { action: Action.ADD },
+    });
+  }
 
   editOrganization(data: any) {
     this.dialog.open(ActionOrganizationComponent, {
@@ -80,7 +85,15 @@ export class AdminOrganizationsComponent
     dialogRef.afterClosed().subscribe(async (result) => {
       if (!result || !organization.id) return;
       this.processing = true;
-      await this.adminService.deleteOrganization(organization.id);
+      const promises = [
+        this.adminService.deleteOrganization(organization.id),
+        this.adminService.deleteAddress(organization.address),
+        this.adminService.deleteReviews(organization.id),
+      ];
+      for (const contact of organization.contacts)
+        promises.push(this.adminService.deleteContact(contact));
+
+      await Promise.all(promises);
       this.processing = false;
     });
   }

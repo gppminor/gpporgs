@@ -2,15 +2,19 @@ import { Injectable, inject } from '@angular/core';
 import {
   Firestore,
   QueryFieldFilterConstraint,
+  addDoc,
   collection,
   collectionCount,
   collectionData,
   deleteDoc,
   doc,
+  getDocs,
+  orderBy,
   query,
   setDoc,
   updateDoc,
   where,
+  writeBatch,
 } from '@angular/fire/firestore';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 import { BehaviorSubject, take } from 'rxjs';
@@ -105,7 +109,7 @@ export class AdminService {
   private fetchOrganizations() {
     const id = { idField: 'id' };
     const col = collection(this.db, COLLECTIONS.ORGANIZATIONS);
-    collectionData(query(col), id)
+    collectionData(query(col, orderBy('name', 'asc')), id)
       .pipe(take(1))
       .subscribe((data) => {
         this.organizations.next(data as Organization[]);
@@ -161,6 +165,11 @@ export class AdminService {
     return result;
   }
 
+  async addOrganization(data: any): Promise<string> {
+    const ref = collection(this.db, COLLECTIONS.ORGANIZATIONS);
+    return (await addDoc(ref, data)).id;
+  }
+
   updateOrganization(id: string, data: any): Promise<void> {
     const ref = doc(this.db, COLLECTIONS.ORGANIZATIONS, id);
     return updateDoc(ref, data);
@@ -173,6 +182,11 @@ export class AdminService {
     this.organizations.next(orgs);
   }
 
+  async addAddress(data: any): Promise<string> {
+    const ref = collection(this.db, COLLECTIONS.ADDRESSES);
+    return (await addDoc(ref, data)).id;
+  }
+
   updateAddress(id: string, data: any): Promise<void> {
     const ref = doc(this.db, COLLECTIONS.ADDRESSES, id);
     return updateDoc(ref, data as any);
@@ -181,6 +195,11 @@ export class AdminService {
   deleteAddress(id: string): Promise<void> {
     const ref = doc(this.db, COLLECTIONS.ADDRESSES, id);
     return deleteDoc(ref);
+  }
+
+  async addContact(data: any): Promise<string> {
+    const ref = collection(this.db, COLLECTIONS.CONTACTS);
+    return (await addDoc(ref, data)).id;
   }
 
   updateContact(id: string, data: any): Promise<void> {
@@ -201,5 +220,21 @@ export class AdminService {
   deleteReview(id: string): Promise<void> {
     const ref = doc(this.db, COLLECTIONS.REVIEWS, id);
     return deleteDoc(ref);
+  }
+
+  async deleteReviews(organization: string): Promise<void> {
+    const snapshot = await getDocs(
+      query(
+        collection(this.db, COLLECTIONS.REVIEWS),
+        where('organization', '==', organization)
+      )
+    );
+
+    const batch = writeBatch(this.db);
+    snapshot.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+
+    await batch.commit();
   }
 }

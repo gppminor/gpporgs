@@ -24,3 +24,5 @@ export const ADMIN_STATS = {
   KEY_STUDENTS: 'students',
   KEY_ADMINS: 'admins',
 };
+
+export const MAX_NUM_ORG_CONTACTS = 3;

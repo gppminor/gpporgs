@@ -3,13 +3,15 @@
         <button mat-flat-button class="shadow-1 mb-2 bg-gray" [disabled]="isDetailView" (click)="isDetailView = true">
             Organization
         </button>
+        @if (data.data?.id) {
         <button mat-flat-button class="shadow-1 mb-2 bg-gray" [disabled]="!isDetailView" (click)="isDetailView = false">
             Reviews
         </button>
+        }
     </div>
     @if (isDetailView) {
     <app-organization [action]="action" [data]="data.data" (close)="close()" />
     } @else {
-    <app-reviews [organization]="data.data.id" />
+    <app-reviews [organization]="data.data?.id || ''" />
     }
 </div>

@@ -38,7 +38,7 @@
     <mat-form-field class="w-full">
         <mat-label>Region</mat-label>
         @if (isReadOnly) {
-        <input matInput formControlName="region" value="{{getRegion()}}" readonly>
+        <input matInput value="{{getRegion()}}" readonly>
         } @else {
         <mat-select formControlName="region">
             @for(key of fireService.regions.keys(); track key) {
@@ -51,7 +51,7 @@
     <mat-form-field class="w-full">
         <mat-label>Languages</mat-label>
         @if (isReadOnly){
-        <input matInput value="{{getLanguages().join(', ')}}" readonly>
+        <input matInput value="{{getLanguages()}}" readonly>
         } @else{
         <mat-chip-grid #chipGrid [disabled]="processing">
             @for (code of selectedLangs$ | async; track code) {
@@ -81,7 +81,7 @@
     <mat-form-field class="w-full">
         <mat-label>Sectors</mat-label>
         @if (isReadOnly) {
-        <input matInput formControlName="sectors" value="{{getSectors()}}" readonly>
+        <input matInput value="{{getSectors()}}" readonly>
         }
         @else {
         <mat-select formControlName="sectors" multiple>

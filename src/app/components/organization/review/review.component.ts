@@ -120,10 +120,12 @@ export class ReviewComponent implements OnInit {
     return value || '-';
   }
 
-  getLanguages(): string[] {
-    return this.selectedLangs.value.map(
-      (code: string) => this.fireService.languages.get(code) || ''
+  getLanguages(): string {
+    const langs: string[] = [];
+    this.selectedLangs.value.map((code: string) =>
+      langs.push(this.fireService.languages.get(code) || '')
     );
+    return langs.join(', ');
   }
 
   addLanguage(event: MatChipInputEvent): void {

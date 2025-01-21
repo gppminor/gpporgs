@@ -2,7 +2,7 @@ import { Injectable, OnDestroy, inject } from '@angular/core';
 import {
   Auth,
   onAuthStateChanged,
-  signInWithRedirect,
+  signInWithPopup,
   signOut,
   user,
 } from '@angular/fire/auth';
@@ -88,7 +88,7 @@ export class AuthService implements OnDestroy {
 
   async signIn() {
     this.loading.next(true);
-    setTimeout(() => signInWithRedirect(this.auth, this.provider), 700);
+    setTimeout(() => signInWithPopup(this.auth, this.provider), 700);
   }
 
   async deleteCurrentUser() {
