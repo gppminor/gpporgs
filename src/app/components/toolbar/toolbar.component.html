@@ -2,7 +2,7 @@
     <mat-toolbar-row class="bg-primary">
         <div class="flex items-center justify-between container mx-auto max-w-[1200px] md:px-4">
             <span class="cursor-pointer text-xl sm:text-2xl font-bold text-white" routerLink="/">
-                GPP Organizations
+                GPP Database
             </span>
             <div class="flex text-white font-bold gap-4">
                 @if (authService.user$| async) {
@@ -11,12 +11,12 @@
                     @if ((authService.role$ | async) == Role.ADMIN) {
                     <button mat-menu-item
                         (click)="adminView('/admin')"><mat-icon>admin_panel_settings</mat-icon>Dashboard</button>
-                    <button mat-menu-item (click)="adminView('/admin/users')"><mat-icon>manage_accounts</mat-icon>Manage
-                        Users</button>
                     <button mat-menu-item
-                        (click)="adminView('/admin/organizations')"><mat-icon>corporate_fare</mat-icon>Manage
-                        Orgs</button>
-                    <mat-divider></mat-divider>
+                        (click)="adminView('/admin/users')"><mat-icon>manage_accounts</mat-icon>Users</button>
+                    <button mat-menu-item
+                        (click)="adminView('/admin/organizations')"><mat-icon>corporate_fare</mat-icon>
+                        Organizations</button>
+                    <mat-divider />
                     }
                     <button mat-menu-item (click)="signOut()"><mat-icon>logout</mat-icon>Logout</button>
                     <button mat-menu-item (click)="deleteAccount()"><mat-icon>delete</mat-icon>Delete</button>
