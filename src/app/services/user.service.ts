@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import {
   Firestore,
+  addDoc,
   collection,
   collectionData,
   doc,
@@ -88,11 +89,21 @@ export class UserService {
     const order = orderBy('createdAt', 'desc');
     const condition = where('organization', '==', organizationId);
     const col = collection(this.db, COLLECTIONS.REVIEWS);
-    return collectionData(query(col, condition, order));
+    return collectionData(query(col, condition, order), { idField: 'id' });
   }
 
   getReview(id: string): Observable<any> {
     const docRef = doc(this.db, COLLECTIONS.REVIEWS, id);
     return docData(docRef, { idField: 'id' });
+  }
+
+  addReview(data: any): Promise<string> {
+    const ref = collection(this.db, COLLECTIONS.REVIEWS);
+    return addDoc(ref, data).then(docRef => docRef.id);
+  }
+
+  addAddress(data: any): Promise<string> {
+    const ref = collection(this.db, COLLECTIONS.ADDRESSES);
+    return addDoc(ref, data).then(docRef => docRef.id);
   }
 }

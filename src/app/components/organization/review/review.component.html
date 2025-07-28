@@ -129,10 +129,18 @@
 </form>
 @if (!isReadOnly) {
 <mat-action-row class="flex flex-row items-center justify-center">
-    <button mat-flat-button color="primary" (click)="updateReview()" [disabled]="!canSave || processing">Save</button>
+    @if (isCreating) {
+    <button mat-flat-button color="primary" (click)="createReview()" [disabled]="!canSave || processing">
+        Create Review
+    </button>
+    } @else {
+    <button mat-flat-button color="primary" (click)="updateReview()" [disabled]="!canSave || processing">
+        Save
+    </button>
     <button mat-icon-button (click)="deleteReview()" [disabled]="processing">
         <mat-icon>delete</mat-icon>
     </button>
+    }
 </mat-action-row>
 }
 @if (processing) {

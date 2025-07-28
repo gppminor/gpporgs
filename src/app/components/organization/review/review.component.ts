@@ -1,19 +1,21 @@
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
-import { Component, inject, Input, OnInit } from '@angular/core';
+import { Component, inject, Input, OnInit, Output, EventEmitter } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatChipInputEvent } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   BehaviorSubject,
   map,
   Observable,
   startWith,
   Subject,
+  take,
   takeUntil,
 } from 'rxjs';
 import { AdminService } from 'src/app/services/admin.service';
+import { AuthService } from 'src/app/services/auth.service';
 import { UserService } from 'src/app/services/user.service';
 import { Address } from 'src/app/types/address';
 import { Action } from 'src/app/types/enums';
@@ -30,11 +32,15 @@ export class ReviewComponent implements OnInit {
   private fb = inject(FormBuilder);
   fireService = inject(UserService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private adminService = inject(AdminService);
+  private authService = inject(AuthService);
   private dialog = inject(MatDialog);
 
   @Input() data!: any;
   @Input() action?: Action;
+  @Input() isCreating: boolean = false;
+  @Output() reviewCreated = new EventEmitter<void>();
 
   Action = Action;
   formGroup = this.fb.group({});
@@ -58,9 +64,22 @@ export class ReviewComponent implements OnInit {
     this.fetchAddress();
     this.formGroup.valueChanges
       .pipe(takeUntil(this.destroy$))
-      .subscribe((value) => {
+      .subscribe((value: any) => {
         if (this.loading || this.processing) return;
-        this.canSave = valueChanged(this.original, value);
+        if (this.isCreating) {
+          // For creating, enable save if form has any meaningful content
+          this.canSave = this.formGroup.valid && (
+            value.workDone?.trim() || 
+            value.typicalDay?.trim() || 
+            value.evaluation?.trim() ||
+            value.difficulties?.trim() ||
+            value.otherComments?.trim() ||
+            value.duration?.trim() ||
+            (value.address?.street?.trim() && value.address?.city?.trim())
+          );
+        } else {
+          this.canSave = valueChanged(this.original, value);
+        }
       });
     this.filteredLangs = this.langControl.valueChanges.pipe(
       startWith(null),
@@ -73,7 +92,7 @@ export class ReviewComponent implements OnInit {
       })
     );
     this.selectedLangs.next(this.data.languages || []);
-    this.isReadOnly = !this.router.url.startsWith('/admin/');
+    this.isReadOnly = !this.router.url.startsWith('/admin/') && !this.isCreating;
   }
 
   ngOnDestroy(): void {
@@ -87,13 +106,29 @@ export class ReviewComponent implements OnInit {
     }
     this.selectedLangs$.pipe(takeUntil(this.destroy$)).subscribe((value) => {
       (this.formGroup.controls as any).languages.setValue(value);
-      this.canSave = valueChanged(this.original, this.formGroup.value);
+      if (!this.isCreating) {
+        this.canSave = valueChanged(this.original, this.formGroup.value);
+      }
     });
     this.original = JSON.parse(JSON.stringify(this.data));
   }
 
   fetchAddress() {
     this.loading = true;
+    
+    // If creating a new review, initialize with empty address
+    if (this.isCreating || !this.data.address) {
+      const controls: any = {};
+      for (const [key, value] of Object.entries(new Address())) {
+        controls[key] = value;
+      }
+      this.formGroup.addControl('address', this.fb.group(controls));
+      this.original.address = { ...new Address() };
+      this.loading = false;
+      return;
+    }
+    
+    // For existing reviews, fetch the address
     this.fireService
       .getAddress(this.data.address)
       .pipe(takeUntil(this.destroy$))
@@ -191,6 +226,7 @@ export class ReviewComponent implements OnInit {
       },
     });
     dialogRef.afterClosed().subscribe(async (result) => {
+      console.log(this.data);
       if (!result || !this.data.id) return;
       this.processing = true;
       this.formGroup.disable();
@@ -218,5 +254,53 @@ export class ReviewComponent implements OnInit {
     this.formGroup.enable();
     this.canSave = false;
     this.processing = false;
+  }
+
+  async createReview() {
+    this.processing = true;
+    this.formGroup.disable();
+    
+    try {
+      const reviewData: any = { ...this.formGroup.value };
+      const addressData = { ...reviewData.address };
+      delete reviewData.address;
+      
+      // Get organization ID from route params
+      const organizationId = this.route.parent?.snapshot.paramMap.get('id');
+      if (!organizationId) {
+        throw new Error('Organization ID not found');
+      }
+      
+      // Get current user email
+      const currentUser = await this.authService.user$.pipe(take(1)).toPromise();
+      if (!currentUser?.email) {
+        throw new Error('User not authenticated');
+      }
+      
+      // Set required fields for new review
+      reviewData.organization = organizationId;
+      reviewData.reviewer = currentUser.email;
+      reviewData.createdAt = Date.now();
+
+      console.log(addressData);
+      console.log(reviewData);
+      
+      // Create address first
+      // const addressId = await this.fireService.addAddress(addressData);
+      // reviewData.address = addressId;
+      
+      // // Create review
+      // await this.fireService.addReview(reviewData);
+      
+      // // Emit success event
+      // this.reviewCreated.emit();
+      
+    } catch (error) {
+      console.error('Error creating review:', error);
+      // You might want to show a snackbar or error message here
+    } finally {
+      this.formGroup.enable();
+      this.processing = false;
+    }
   }
 }

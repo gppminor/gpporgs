@@ -1,14 +1,26 @@
-<div class="flex items-center pt-2">
-    <button mat-button class="shadow-1 mb-2" (click)="home()">
-        Home
-    </button>
-    <mat-icon class="text-sm mb-1">arrow_forward_ios</mat-icon>
-    <button mat-button class="shadow-1 mb-2" [disabled]="isDetailView" (click)="organization()">
-        Organization
-    </button>
-    <mat-icon class="text-sm mb-1">arrow_forward_ios</mat-icon>
-    <button mat-button class="shadow-1 mb-2" [disabled]="isReviewsView" (click)="reviews()">
-        Reviews
-    </button>
+<div class="flex items-center justify-between pt-2">
+    <div class="flex items-center">
+        <button mat-button class="shadow-1 mb-2" (click)="home()">
+            Home
+        </button>
+        <mat-icon class="text-sm mb-1">arrow_forward_ios</mat-icon>
+        <button mat-button class="shadow-1 mb-2" [disabled]="isDetailView" (click)="organization()">
+            Organization
+        </button>
+        <mat-icon class="text-sm mb-1">arrow_forward_ios</mat-icon>
+        <button mat-button class="shadow-1 mb-2" [disabled]="isReviewsView" (click)="reviews()">
+            Reviews
+        </button>
+    </div>
+
+    <!-- Create Review Button - controlled by reviews component -->
+    <div class="mb-2">
+        @if (showCreateButton) {
+        <button mat-flat-button class="button-flat" (click)="onCreateReview()" [disabled]="!showCreateButton">
+            <mat-icon>add</mat-icon>
+            Create New Review
+        </button>
+        }
+    </div>
 </div>
 <router-outlet />

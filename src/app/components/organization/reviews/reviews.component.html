@@ -3,6 +3,28 @@
     <mat-progress-bar mode="indeterminate" />
     } @else {
     <mat-card-content class="pb-4">
+        <!-- Create Review Form -->
+        @if (showCreateForm) {
+        <mat-card class="mb-6">
+            <mat-card-header>
+                <mat-card-title>Create New Review</mat-card-title>
+                <div class="ml-auto">
+                    <button mat-icon-button (click)="cancelCreateReview()" matTooltip="Cancel">
+                        <mat-icon>close</mat-icon>
+                    </button>
+                </div>
+            </mat-card-header>
+            <mat-card-content>
+                <app-review 
+                    [data]="getNewReviewData()" 
+                    [isCreating]="true"
+                    (reviewCreated)="onReviewCreated()">
+                </app-review>
+            </mat-card-content>
+        </mat-card>
+        }
+
+        <!-- Existing Reviews -->
         <mat-accordion>
             @for (review of reviews; track review.id; let idx = $index) {
             <mat-expansion-panel>
