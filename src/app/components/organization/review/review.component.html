@@ -92,18 +92,32 @@
         }
     </mat-form-field>
     <!-- Cost, Stipend, Duration -->
-    <mat-form-field class="mr-2">
-        <mat-label>Cost of PE</mat-label>
-        <input matInput formControlName="cost" [readonly]="isReadOnly || processing">
-    </mat-form-field>
-    <mat-form-field>
-        <mat-label>Stipend paid by organization</mat-label>
-        <input matInput formControlName="stipend" [readonly]="isReadOnly || processing">
-    </mat-form-field>
-    <mat-form-field class="ml-2">
-        <mat-label>Duration of PE</mat-label>
-        <input matInput formControlName="duration" [readonly]="isReadOnly || processing">
-    </mat-form-field>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <mat-form-field>
+            <mat-label>Cost of PE</mat-label>
+            <input matInput formControlName="cost" type="number" [readonly]="isReadOnly || processing">
+        </mat-form-field>
+        <mat-form-field>
+            <mat-label>Stipend paid by organization</mat-label>
+            <input matInput formControlName="stipend" type="number" [readonly]="isReadOnly || processing">
+        </mat-form-field>
+        @if (isReadOnly) {
+        <mat-form-field>
+            <mat-label>Duration of PE</mat-label>
+            <input matInput formControlName="duration" [readonly]="isReadOnly || processing">
+        </mat-form-field>
+        }
+        @else {
+        <mat-form-field>
+            <mat-label>Duration of PE</mat-label>
+            <mat-select formControlName="duration">
+                @for(duration of durations; track duration) {
+                <mat-option [value]="duration">{{duration}}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+        }
+    </div>
     <!-- Work Done, Typical Day, Strengths/Weaknesses, Other comments -->
     <mat-form-field class="w-full">
         <mat-label>Please describe the work that you did with your organization.</mat-label>
@@ -125,7 +139,45 @@
         <textarea matInput formControlName="otherComments" [readonly]="isReadOnly || processing"
             cdkTextareaAutosize></textarea>
     </mat-form-field>
-    <!-- Safety, Responsiveness, Characteristics -->
+    <!-- Safety, Responsiveness -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <mat-form-field>
+            <mat-label>Safety rating</mat-label>
+            @if (isReadOnly) {
+            <input matInput formControlName="safety" readonly>
+            } @else {
+            <mat-select formControlName="safety">
+                @for(i of [1, 2, 3, 4, 5]; track i) {
+                <mat-option [value]="i">{{i}}</mat-option>
+                }
+            </mat-select>
+            }
+        </mat-form-field>
+        <mat-form-field>
+            <mat-label>Org responsiveness</mat-label>
+            @if (isReadOnly) {
+            <input matInput formControlName="responsiveness" readonly>
+            } @else {
+            <mat-select formControlName="responsiveness">
+                @for(i of [1, 2, 3, 4, 5]; track i) {
+                <mat-option [value]="i">{{i}}</mat-option>
+                }
+            </mat-select>
+            }
+        </mat-form-field>
+    </div>
+    <!-- Anonymous Option -->
+    @if (!isReadOnly) {
+    <mat-checkbox formControlName="anonymous" color="primary" class="mb-4">
+        Post this review anonymously
+    </mat-checkbox>
+    }
+
+    <!-- Reviewer -->
+    <mat-form-field class="w-full">
+        <mat-label>Reviewer</mat-label>
+        <input matInput [value]="getReviewerDisplay()" readonly>
+    </mat-form-field>
 </form>
 @if (!isReadOnly) {
 <mat-action-row class="flex flex-row items-center justify-center">

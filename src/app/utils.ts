@@ -30,12 +30,14 @@ export const formatTime = (time: number): string => {
 export const valueChanged = (o: any, c: any) => {
   if (o != null && o != '' && typeof c != typeof o) return true;
   else if (c instanceof Array) {
-    if (c.length !== o.length) return true;
+    if (o == null || c.length !== o.length) return true;
     o.sort();
     c.sort();
     for (let i = 0; i < c.length; i++)
       if (valueChanged(o[i], c[i])) return true;
   } else if (c instanceof Object) {
+    // Check if o is null/undefined when c is an object
+    if (o == null) return true;
     for (const key of Object.keys(c))
       if (valueChanged(o[key], c[key])) return true;
   } else if ((c == null || c == '') != (o == null || o == '')) return true;

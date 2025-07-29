@@ -35,6 +35,8 @@ export class AuthService implements OnDestroy {
 
   user$ = user(this.auth);
   private uid: string | null = null;
+  private _currentRole: Role = Role.NONE;
+  private _currentUserEmail: string = '';
   private role = new Subject<Role>();
   role$ = this.role.asObservable();
 
@@ -42,6 +44,23 @@ export class AuthService implements OnDestroy {
   loading$ = this.loading.asObservable();
 
   private unsubscribe: Unsubscribe;
+
+  // Getters for synchronous access to current user data
+  get currentUserEmail(): string {
+    return this._currentUserEmail;
+  }
+
+  get currentRole(): Role {
+    return this._currentRole;
+  }
+
+  get isAdmin(): boolean {
+    return this._currentRole === Role.ADMIN;
+  }
+
+  get isStudent(): boolean {
+    return this._currentRole === Role.STUDENT;
+  }
 
   constructor() {
     this.loading.next(true);
@@ -59,18 +78,34 @@ export class AuthService implements OnDestroy {
     this.loading.next(true);
     if (!user) {
       this.uid = null;
+      this._currentRole = Role.NONE;
+      this._currentUserEmail = '';
       this.role.next(Role.NONE);
       this.loading.next(false);
       return;
     }
+    
+    // Update current user email
+    this._currentUserEmail = user.email || '';
+    
     let token = await user.getIdTokenResult(true);
     if (!token.claims['admin'] && !token.claims['student']) {
       // set and fetch claims for new user
       await this.setClaims({ uid: this.uid });
       token = await user.getIdTokenResult(true);
     }
-    if (token.claims['admin']) this.role.next(Role.ADMIN);
-    if (token.claims['student']) this.role.next(Role.STUDENT);
+    
+    // Update current role and emit
+    if (token.claims['admin']) {
+      this._currentRole = Role.ADMIN;
+      this.role.next(Role.ADMIN);
+    } else if (token.claims['student']) {
+      this._currentRole = Role.STUDENT;
+      this.role.next(Role.STUDENT);
+    } else {
+      this._currentRole = Role.NONE;
+      this.role.next(Role.NONE);
+    }
 
     this.loading.next(false);
     if (!token.claims['admin'] && !token.claims['student']) {

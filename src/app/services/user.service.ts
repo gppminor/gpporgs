@@ -10,15 +10,18 @@ import {
   query,
   where,
 } from '@angular/fire/firestore';
-import { BehaviorSubject, Observable, take } from 'rxjs';
+import { BehaviorSubject, Observable, take, map, switchMap } from 'rxjs';
 import { COLLECTIONS } from 'src/app/constants';
 import { Filter } from '../types/filter';
+import { AuthService } from './auth.service';
+import { Role } from '../types/user';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserService {
   private db = inject(Firestore);
+  private authService = inject(AuthService);
 
   readonly affiliations = new Map<string, string>();
   readonly countries = new Map<string, string>();
@@ -89,7 +92,36 @@ export class UserService {
     const order = orderBy('createdAt', 'desc');
     const condition = where('organization', '==', organizationId);
     const col = collection(this.db, COLLECTIONS.REVIEWS);
-    return collectionData(query(col, condition, order), { idField: 'id' });
+    
+    // Get reviews and combine with user role and email to handle anonymous reviews
+    return this.authService.role$.pipe(
+      switchMap(userRole => 
+        this.authService.user$.pipe(
+          switchMap(currentUser => 
+            collectionData(query(col, condition, order), { idField: 'id' }).pipe(
+              map((reviews: any[]) => 
+                reviews.map(review => {
+                  // If review is anonymous, check if user is admin or if it's their own review
+                  if (review.anonymous) {
+                    const isAdmin = userRole === Role.ADMIN;
+                    const isOwnReview = currentUser?.email === review.reviewer?.email;
+                    
+                    // Show reviewer email only if user is admin or it's their own review
+                    if (!isAdmin && !isOwnReview) {
+                      return {
+                        ...review,
+                        reviewer: null // Hide reviewer object for anonymous reviews
+                      };
+                    }
+                  }
+                  return review;
+                })
+              )
+            )
+          )
+        )
+      )
+    );
   }
 
   getReview(id: string): Observable<any> {
@@ -99,11 +131,11 @@ export class UserService {
 
   addReview(data: any): Promise<string> {
     const ref = collection(this.db, COLLECTIONS.REVIEWS);
-    return addDoc(ref, data).then(docRef => docRef.id);
+    return addDoc(ref, data).then((docRef) => docRef.id);
   }
 
   addAddress(data: any): Promise<string> {
     const ref = collection(this.db, COLLECTIONS.ADDRESSES);
-    return addDoc(ref, data).then(docRef => docRef.id);
+    return addDoc(ref, data).then((docRef) => docRef.id);
   }
 }

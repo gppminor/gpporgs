@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { filter, Subject, takeUntil } from 'rxjs';
 import { CreateReviewButtonService } from 'src/app/services/create-review-button.service';
@@ -12,6 +12,7 @@ export class DetailComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private createReviewButtonService = inject(CreateReviewButtonService);
+  private cdr = inject(ChangeDetectorRef);
   private organizationId: string | null = null;
   private destroy$ = new Subject<void>();
 
@@ -30,7 +31,10 @@ export class DetailComponent implements OnInit, OnDestroy {
     this.createReviewButtonService.showButton$
       .pipe(takeUntil(this.destroy$))
       .subscribe((show) => {
-        this.showCreateButton = show;
+        setTimeout(() => {
+          this.showCreateButton = show;
+          this.cdr.detectChanges();
+        });
       });
 
     // Listen for route changes to update view states

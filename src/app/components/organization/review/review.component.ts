@@ -1,5 +1,12 @@
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
-import { Component, inject, Input, OnInit, Output, EventEmitter } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  inject,
+  Input,
+  OnInit,
+  Output,
+} from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatChipInputEvent } from '@angular/material/chips';
@@ -11,9 +18,9 @@ import {
   Observable,
   startWith,
   Subject,
-  take,
   takeUntil,
 } from 'rxjs';
+import { PRACTICE_DURATIONS } from 'src/app/constants';
 import { AdminService } from 'src/app/services/admin.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { UserService } from 'src/app/services/user.service';
@@ -55,6 +62,8 @@ export class ReviewComponent implements OnInit {
   private readonly selectedLangs = new BehaviorSubject<string[]>([]);
   selectedLangs$ = this.selectedLangs.asObservable();
 
+  durations = PRACTICE_DURATIONS;
+
   // For auto-unsubscribe
   private destroy$ = new Subject<void>();
   private original: any = {};
@@ -68,15 +77,15 @@ export class ReviewComponent implements OnInit {
         if (this.loading || this.processing) return;
         if (this.isCreating) {
           // For creating, enable save if form has any meaningful content
-          this.canSave = this.formGroup.valid && (
-            value.workDone?.trim() || 
-            value.typicalDay?.trim() || 
-            value.evaluation?.trim() ||
-            value.difficulties?.trim() ||
-            value.otherComments?.trim() ||
-            value.duration?.trim() ||
-            (value.address?.street?.trim() && value.address?.city?.trim())
-          );
+          this.canSave =
+            this.formGroup.valid &&
+            (value.workDone?.trim() ||
+              value.typicalDay?.trim() ||
+              value.evaluation?.trim() ||
+              value.difficulties?.trim() ||
+              value.otherComments?.trim() ||
+              value.duration?.trim() ||
+              (value.address?.street?.trim() && value.address?.city?.trim()));
         } else {
           this.canSave = valueChanged(this.original, value);
         }
@@ -92,7 +101,8 @@ export class ReviewComponent implements OnInit {
       })
     );
     this.selectedLangs.next(this.data.languages || []);
-    this.isReadOnly = !this.router.url.startsWith('/admin/') && !this.isCreating;
+    this.isReadOnly =
+      !this.router.url.startsWith('/admin/') && !this.isCreating;
   }
 
   ngOnDestroy(): void {
@@ -102,7 +112,24 @@ export class ReviewComponent implements OnInit {
 
   initControls() {
     for (const [key, value] of Object.entries(new Review())) {
-      this.formGroup.addControl(key, this.fb.control(this.data[key] || value));
+      if (key === 'reviewer') {
+        // Always create reviewer as a FormGroup with an email control
+        const reviewerData =
+          this.data[key] && typeof this.data[key] === 'object'
+            ? this.data[key]
+            : {};
+        this.formGroup.addControl(
+          key,
+          this.fb.group({
+            email: this.fb.control(reviewerData.email || ''),
+          })
+        );
+      } else {
+        this.formGroup.addControl(
+          key,
+          this.fb.control(this.data[key] ?? value)
+        );
+      }
     }
     this.selectedLangs$.pipe(takeUntil(this.destroy$)).subscribe((value) => {
       (this.formGroup.controls as any).languages.setValue(value);
@@ -115,7 +142,7 @@ export class ReviewComponent implements OnInit {
 
   fetchAddress() {
     this.loading = true;
-    
+
     // If creating a new review, initialize with empty address
     if (this.isCreating || !this.data.address) {
       const controls: any = {};
@@ -127,7 +154,7 @@ export class ReviewComponent implements OnInit {
       this.loading = false;
       return;
     }
-    
+
     // For existing reviews, fetch the address
     this.fireService
       .getAddress(this.data.address)
@@ -205,6 +232,25 @@ export class ReviewComponent implements OnInit {
     return values.join(', ');
   }
 
+  getReviewerDisplay(): string {
+    if (this.isCreating) return this.authService.currentUserEmail || '';
+    // If review is anonymous, check if user is admin or if it's their own review
+    if (this.data.anonymous) {
+      const isAdmin = this.authService.isAdmin;
+      const currentUserEmail = this.authService.currentUserEmail;
+      const isOwnReview =
+        currentUserEmail === this.data.reviewer?.email || this.isCreating;
+
+      // Show "Anonymous" only if user is not admin and it's not their own review
+      if (!isAdmin && !isOwnReview) {
+        return 'Anonymous';
+      }
+    }
+
+    // Show actual reviewer email for non-anonymous reviews, admins, or own reviews
+    return this.data.reviewer?.email || 'Missing';
+  }
+
   private filterLang(value: string) {
     const filterValue = value.toLowerCase();
     return this.allLangs.filter((code) => {
@@ -259,42 +305,41 @@ export class ReviewComponent implements OnInit {
   async createReview() {
     this.processing = true;
     this.formGroup.disable();
-    
+
     try {
       const reviewData: any = { ...this.formGroup.value };
       const addressData = { ...reviewData.address };
       delete reviewData.address;
-      
+
       // Get organization ID from route params
       const organizationId = this.route.parent?.snapshot.paramMap.get('id');
       if (!organizationId) {
         throw new Error('Organization ID not found');
       }
-      
+
       // Get current user email
-      const currentUser = await this.authService.user$.pipe(take(1)).toPromise();
-      if (!currentUser?.email) {
+      const currentUserEmail = this.authService.currentUserEmail;
+      if (!currentUserEmail) {
         throw new Error('User not authenticated');
       }
-      
+
       // Set required fields for new review
       reviewData.organization = organizationId;
-      reviewData.reviewer = currentUser.email;
+      reviewData.reviewer = { email: currentUserEmail };
       reviewData.createdAt = Date.now();
 
       console.log(addressData);
       console.log(reviewData);
-      
+
       // Create address first
-      // const addressId = await this.fireService.addAddress(addressData);
-      // reviewData.address = addressId;
-      
+      const addressId = await this.fireService.addAddress(addressData);
+      reviewData.address = addressId;
+
       // // Create review
-      // await this.fireService.addReview(reviewData);
-      
+      await this.fireService.addReview(reviewData);
+
       // // Emit success event
-      // this.reviewCreated.emit();
-      
+      this.reviewCreated.emit();
     } catch (error) {
       console.error('Error creating review:', error);
       // You might want to show a snackbar or error message here

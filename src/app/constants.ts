@@ -26,3 +26,11 @@ export const ADMIN_STATS = {
 };
 
 export const MAX_NUM_ORG_CONTACTS = 3;
+
+export const PRACTICE_DURATIONS = [
+  '< 2 months',
+  '2-4 months',
+  '4-6 months',
+  '6-12 months',
+  '> 1 year',
+];

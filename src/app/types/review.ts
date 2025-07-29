@@ -2,13 +2,13 @@ export class Review {
   id: string;
   organization: string;
   createdAt: number;
-  reviewer: string; // email of reviewer
   address: string; // address id
   // Default vals below
-  cost: number = 0; // TODO: currency input
-  stipend: number = 0; // TODO: currency input
-  duration: string = ''; // TODO: select input
-  safety: number = 0; // TODO: rating select input
+  reviewer: { email: string } = { email: '' }; // reviewer object with email
+  cost: number = 0;
+  stipend: number = 0;
+  duration: string = '';
+  safety: number = 0; // 1-5 rating
   region: string = '';
   languages: Array<string> = [];
   sectors: Array<string> = [];
@@ -17,7 +17,7 @@ export class Review {
   typicalDay: string = '';
   workDone: string = '';
   difficulties: string = '';
-  responsiveness: string = ''; // TODO: select input
+  responsiveness: string = ''; // 1-5 rating
   otherComments: string = '';
-  anonymous: boolean = true; // TODO: checkbox input
+  anonymous: boolean = true;
 }
