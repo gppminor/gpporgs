@@ -1,4 +1,6 @@
 import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   EventEmitter,
   Input,
@@ -9,7 +11,7 @@ import {
 } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, combineLatest, takeUntil } from 'rxjs';
+import { Subject, combineLatest, takeUntil, distinctUntilChanged, map } from 'rxjs';
 import { MAX_NUM_ORG_CONTACTS } from 'src/app/constants';
 import { AdminService } from 'src/app/services/admin.service';
 import { UserService } from 'src/app/services/user.service';
@@ -23,6 +25,7 @@ import { valueChanged } from 'src/app/utils';
   selector: 'app-organization',
   templateUrl: './organization.component.html',
   styleUrl: './organization.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrganizationComponent implements OnInit, OnDestroy {
   private router = inject(Router);
@@ -30,6 +33,7 @@ export class OrganizationComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   readonly fireService = inject(UserService);
   private readonly adminService = inject(AdminService);
+  private cdr = inject(ChangeDetectorRef);
 
   @Input() data?: Organization;
   @Input() action?: Action;
@@ -66,27 +70,25 @@ export class OrganizationComponent implements OnInit, OnDestroy {
   MAX_CONTACTS = MAX_NUM_ORG_CONTACTS;
 
   ngOnInit(): void {
-    const orgId = this.route.snapshot.paramMap.get('id');
-    if (orgId) {
-      this.fetchOrganization(orgId);
-    } else if (this.data) {
-      this.initOrgControls(this.data);
-      this.fetchAddress(this.data.address);
-      this.fetchContacts(this.data.contacts);
-      this.loading.organization = false;
-    } else {
-      this.data = new Organization();
-      this.original = { organization: { ...this.data } };
-      this.original.address = new Address();
-      this.original.contacts = [];
-      this.initOrgControls(this.original.organization);
-      this.initAddressControls(this.original.address);
-      this.loading.organization = false;
-      this.loading.address = false;
-    }
+    // Monitor route params for changes to avoid unnecessary fetches
+    this.route.paramMap.pipe(
+      takeUntil(this.destroy$),
+      map(params => params.get('id')),
+      distinctUntilChanged()
+    ).subscribe(orgId => {
+      if (orgId) {
+        this.fetchOrganization(orgId);
+      } else if (this.data) {
+        this.initData(this.data);
+      } else {
+        this.initData(new Organization());
+      }
+    });
 
     this.isReadOnly = !this.router.url.startsWith('/admin');
+    this.cdr.markForCheck(); // Initial check
 
+    // Optimized valueChanges subscription
     this.formGroup.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe((value) => {
@@ -94,11 +96,18 @@ export class OrganizationComponent implements OnInit, OnDestroy {
           this.loading.organization ||
           this.loading.address ||
           this.loading.contacts.includes(true);
+        
         if (isLoading) return;
+        
+        const previousCanSave = this.canSave;
         this.canSave = valueChanged(
           this.original,
           JSON.parse(JSON.stringify(value))
         );
+        
+        if (previousCanSave !== this.canSave) {
+          this.cdr.markForCheck(); // Only trigger change detection when canSave changes
+        }
       });
   }
 
@@ -107,28 +116,65 @@ export class OrganizationComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  private initData(org: Organization) {
+    this.data = org;
+    this.original = {
+      organization: { ...org },
+      address: new Address(),
+      contacts: [],
+    };
+    this.initOrgControls(org);
+    if (org.address) {
+      this.fetchAddress(org.address);
+    } else {
+      this.initAddressControls(new Address());
+    }
+    if (org.contacts?.length) {
+      this.fetchContacts(org.contacts);
+    } else {
+      this.initContactControls([]);
+    }
+    this.loading.organization = false;
+    this.cdr.markForCheck();
+  }
+
   fetchOrganization(id: string) {
+    // Prevent refetching if the organization data is already loaded
+    if (this.data && this.data.id === id) return;
+
+    this.loading.organization = true;
+    this.cdr.markForCheck();
+
     this.fireService
       .getOrganization(id)
       .pipe(takeUntil(this.destroy$))
       .subscribe((organization) => {
         if (organization) {
-          this.data = organization;
-          this.original.organization = { ...organization };
-          this.fetchAddress(organization.address);
-          this.fetchContacts(organization.contacts);
+          this.initData(organization);
         } else {
-          this.data = new Organization();
+          this.initData(new Organization()); // Handle case where organization is not found
         }
-        this.initOrgControls(this.data!);
       });
   }
 
   private fetchAddress(id: string) {
+    this.loading.address = true;
+    this.cdr.markForCheck();
+    
     this.fireService
       .getAddress(id)
       .pipe(takeUntil(this.destroy$))
-      .subscribe((address) => this.initAddressControls(address));
+      .subscribe({
+        next: (address) => {
+          this.initAddressControls(address);
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          console.error('Error fetching address:', error);
+          this.loading.address = false;
+          this.cdr.markForCheck();
+        }
+      });
   }
 
   // Fetch contacts in parallel and update the contacts FormGroup
@@ -138,10 +184,22 @@ export class OrganizationComponent implements OnInit, OnDestroy {
       return;
     }
     this.loading.contacts = new Array(ids.length).fill(true);
+    this.cdr.markForCheck();
+    
     const observables = ids.map((id) => this.fireService.getContact(id));
     combineLatest(observables)
       .pipe(takeUntil(this.destroy$))
-      .subscribe((contacts) => this.initContactControls(contacts));
+      .subscribe({
+        next: (contacts) => {
+          this.initContactControls(contacts);
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          console.error('Error fetching contacts:', error);
+          this.loading.contacts.fill(false);
+          this.cdr.markForCheck();
+        }
+      });
   }
 
   getType() {
@@ -263,11 +321,13 @@ export class OrganizationComponent implements OnInit, OnDestroy {
     this.loading.contacts.push(false);
     this.addContactControl(new Contact());
     this.canSave = true;
+    this.cdr.markForCheck();
   }
 
   deleteContact(idx: number) {
     this.formGroup.controls.contacts.removeAt(idx);
     this.loading.contacts.splice(idx, 1);
     this.canSave = true;
+    this.cdr.markForCheck();
   }
 }

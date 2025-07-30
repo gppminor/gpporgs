@@ -1,9 +1,12 @@
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   EventEmitter,
   inject,
   Input,
+  OnDestroy,
   OnInit,
   Output,
 } from '@angular/core';
@@ -19,6 +22,8 @@ import {
   startWith,
   Subject,
   takeUntil,
+  debounceTime,
+  distinctUntilChanged,
 } from 'rxjs';
 import { PRACTICE_DURATIONS } from 'src/app/constants';
 import { AdminService } from 'src/app/services/admin.service';
@@ -34,8 +39,9 @@ import { ConfirmDeleteComponent } from '../../admin/confirm-delete/confirm-delet
   selector: 'app-review',
   templateUrl: './review.component.html',
   styleUrl: './review.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ReviewComponent implements OnInit {
+export class ReviewComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   fireService = inject(UserService);
   private router = inject(Router);
@@ -43,6 +49,7 @@ export class ReviewComponent implements OnInit {
   private adminService = inject(AdminService);
   private authService = inject(AuthService);
   private dialog = inject(MatDialog);
+  private cdr = inject(ChangeDetectorRef);
 
   @Input() data!: any;
   @Input() action?: Action;
@@ -71,10 +78,19 @@ export class ReviewComponent implements OnInit {
   ngOnInit(): void {
     this.initControls();
     this.fetchAddress();
+    
+    // Optimize form value changes with debouncing and distinct checks
     this.formGroup.valueChanges
-      .pipe(takeUntil(this.destroy$))
+      .pipe(
+        takeUntil(this.destroy$),
+        debounceTime(300), // Debounce to reduce frequent calculations
+        distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr))
+      )
       .subscribe((value: any) => {
         if (this.loading || this.processing) return;
+        
+        const previousCanSave = this.canSave;
+        
         if (this.isCreating) {
           // For creating, enable save if form has any meaningful content
           this.canSave =
@@ -88,6 +104,11 @@ export class ReviewComponent implements OnInit {
               (value.address?.street?.trim() && value.address?.city?.trim()));
         } else {
           this.canSave = valueChanged(this.original, value);
+        }
+        
+        // Only trigger change detection if canSave state changed
+        if (previousCanSave !== this.canSave) {
+          this.cdr.markForCheck();
         }
       });
     this.filteredLangs = this.langControl.valueChanges.pipe(
@@ -142,6 +163,7 @@ export class ReviewComponent implements OnInit {
 
   fetchAddress() {
     this.loading = true;
+    this.cdr.markForCheck(); // Trigger change detection for loading state
 
     // If creating a new review, initialize with empty address
     if (this.isCreating || !this.data.address) {
@@ -152,6 +174,7 @@ export class ReviewComponent implements OnInit {
       this.formGroup.addControl('address', this.fb.group(controls));
       this.original.address = { ...new Address() };
       this.loading = false;
+      this.cdr.markForCheck(); // Trigger change detection when loading completes
       return;
     }
 
@@ -159,14 +182,22 @@ export class ReviewComponent implements OnInit {
     this.fireService
       .getAddress(this.data.address)
       .pipe(takeUntil(this.destroy$))
-      .subscribe((result) => {
-        const controls: any = {};
-        for (const [key, value] of Object.entries(new Address())) {
-          controls[key] = result[key] || value;
+      .subscribe({
+        next: (result) => {
+          const controls: any = {};
+          for (const [key, value] of Object.entries(new Address())) {
+            controls[key] = result[key] || value;
+          }
+          this.formGroup.addControl('address', this.fb.group(controls));
+          this.original.address = { ...result };
+          this.loading = false;
+          this.cdr.markForCheck(); // Trigger change detection when loading completes
+        },
+        error: (error) => {
+          console.error('Error fetching address:', error);
+          this.loading = false;
+          this.cdr.markForCheck(); // Trigger change detection on error
         }
-        this.formGroup.addControl('address', this.fb.group(controls));
-        this.original.address = { ...result };
-        this.loading = false;
       });
   }
 

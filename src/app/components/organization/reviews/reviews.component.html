@@ -26,7 +26,7 @@
 
         <!-- Existing Reviews -->
         <mat-accordion>
-            @for (review of reviews; track review.id; let idx = $index) {
+            @for (review of reviews; track trackByReviewId(idx, review); let idx = $index) {
             <mat-expansion-panel>
                 <mat-expansion-panel-header>
                     <mat-panel-title>

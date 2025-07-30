@@ -3,7 +3,7 @@
     @if (loading) {
     <mat-progress-bar mode="indeterminate" />
     } @else {
-    <div formGroupName="address" class="ml-1">
+    <div formGroupName="address" class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <mat-form-field class="w-full">
             <mat-label>Street</mat-label>
             <input matInput formControlName="street" [readonly]="isReadOnly || processing">
